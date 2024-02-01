@@ -21,7 +21,8 @@ const spaceTypes = {
     polibiSpace: false,
     // document.querySelector("#polibiSpaceType").checked
     tritemSpace: false,
-    belazoSpace: false
+    belazoSpace: false,
+    vishenerSpace: false
 };
 
 function markToChar(str) {
@@ -56,6 +57,7 @@ function spaceWithEnd(str) {
 function strToSet(str) {
     let newStr = String(str).toLocaleLowerCase();
     newStr = ((Array.from(new Set(newStr.split("")))).join("")).split(" ").join("");
+    newStr = markToChar(newStr);
     return newStr;
 };
 
@@ -137,9 +139,9 @@ function polibiEncrypt(str, row, col) {
     str = String(markToChar(str)).toLocaleLowerCase();
 
     if ((row > 9) || (col > 9)) {
-        newStr = "Error: кол-во строк или столбцов не должно быть больше 9"
+        newStr = "Error: кол-во строк или столбцов не должно быть больше 9";
     } else if ((row * col) < lowAlphabet.length) {
-        newStr = "Error: не хватает клеток таблиц для всего алфавита (32 буквы)"
+        newStr = "Error: не хватает клеток таблиц для всего алфавита (32 буквы)";
     } else {
         for (let i = 0; i < str.length; i++) {
             if (lowAlphabet.indexOf(str[i]) != -1) {
@@ -200,15 +202,81 @@ function tritemDecrypt(str) {
 };
 
 function belazoEncrypt(str, key) {
+    let newStr = "";
+    str = String(markToChar(str)).toLocaleLowerCase();
 
+    for (let i = 0; i < str.length; i += key.length) {
+        for (let j = 0; j < key.length; j++) {
+            if ((i + j) == str.length) {
+                break;
+            } else {
+                let temp = lowAlphabet[(lowAlphabet.indexOf(str[i + j]) + lowAlphabet.indexOf(key[j])) % lowAlphabet.length];
+                newStr += temp;
+            }
+        }
+    }
+    newStr = charToMark(newStr);
 
+    return newStr;
 };
 
 function belazoDecrypt(str, key) {
+    let newStr = "";
+    str = String(markToChar(str)).toLocaleLowerCase();
 
+    for (let i = 0; i < str.length; i += key.length) {
+        for (let j = 0; j < key.length; j++) {
+            if ((i + j) == str.length) {
+                break;
+            } else {
+                let temp = lowAlphabet[(lowAlphabet.indexOf(str[i + j]) - lowAlphabet.indexOf(key[j]) + 
+                    lowAlphabet.length) % lowAlphabet.length];
+                newStr += temp;
+            }
+        }
+    }
+    newStr = charToMark(newStr);
 
+    return newStr;
 };
 
+function vishenerEncrypt(str, key) {
+    let newStr = "";
+    str = String(markToChar(str)).toLocaleLowerCase();
+
+    if (key.length != 1) {
+        newStr = "Error: ключ должен быть одной буквой";
+    } else {
+        str = String(key).toLocaleLowerCase() + str;
+        for (let i = 1; i < str.length; i++) {
+            let temp = lowAlphabet[(lowAlphabet.indexOf(str[i]) + lowAlphabet.indexOf(str[i - 1])) % lowAlphabet.length]
+            newStr += temp;
+        }
+    }
+    newStr = charToMark(newStr);
+
+    return newStr;
+};
+
+function vishenerDecrypt(str, key) {
+    let newStr = "";
+    str = String(markToChar(str)).toLocaleLowerCase();
+
+    if (key.length != 1) {
+        newStr = "Error: ключ должен быть одной буквой";
+    } else {
+        str = String(key).toLocaleLowerCase() + str;
+        newStr += lowAlphabet[(lowAlphabet.indexOf(str[1]) - lowAlphabet.indexOf(str[0]) + lowAlphabet.length) % lowAlphabet.length]
+        for (let i = 2; i < str.length; i++) {
+            let temp = lowAlphabet[(lowAlphabet.indexOf(str[i]) - lowAlphabet.indexOf(newStr[i - 2]) + lowAlphabet.length) % lowAlphabet.length]
+            
+            newStr += temp;
+        }
+    }
+    newStr = charToMark(newStr);
+
+    return newStr;
+};
 
 
 //
@@ -329,13 +397,59 @@ function fillTritemDe() {
 };
 
 function fillBelazoEn() {
-
-
+    let text = document.querySelector('#belazoEnArea').value;
+    let keyEn = strToSet(document.querySelector('#belazoEnKey').value);
+    let newText = "";
+    if (spaceTypes.belazoSpace) {
+        newText = spaceWithStart(text);
+        newText = belazoEncrypt(newText, keyEn);
+    } else {
+        newText = spaceWithout(text);
+        newText = belazoEncrypt(newText, keyEn);
+    }
+    document.getElementById('belazoAfterEn').value = newText;
 };
 
 function fillBelazoDe() {
+    let text = document.querySelector('#belazoDeArea').value;
+    let keyDe = strToSet(document.querySelector('#belazoDeKey').value);
+    let newText = "";
+    if (spaceTypes.belazoSpace) {
+        newText = belazoDecrypt(text, keyDe);
+        newText = spaceWithEnd(newText);
+    } else {
+        newText = spaceWithout(text);
+        newText = belazoDecrypt(newText, keyDe);
+    }
+    document.getElementById('belazoAfterDe').value = newText;
+};
 
+function fillVishenerEn() {
+    let text = document.querySelector('#vishenerEnArea').value;
+    let keyEn = document.querySelector('#vishenerEnKey').value;
+    let newText = "";
+    if (spaceTypes.vishenerSpace) {
+        newText = spaceWithStart(text);
+        newText = vishenerEncrypt(newText, keyEn);
+    } else {
+        newText = spaceWithout(text);
+        newText = vishenerEncrypt(newText, keyEn);
+    }
+    document.getElementById('vishenerAfterEn').value = newText;
+};
 
+function fillVishenerDe() {
+    let text = document.querySelector('#vishenerDeArea').value;
+    let keyDe = document.querySelector('#vishenerDeKey').value;
+    let newText = "";
+    if (spaceTypes.vishenerSpace) {
+        newText = vishenerDecrypt(text, keyDe);
+        newText = spaceWithEnd(newText);
+    } else {
+        newText = spaceWithout(text);
+        newText = vishenerDecrypt(newText, keyDe);
+    }
+    document.getElementById('vishenerAfterDe').value = newText;
 };
 
 
@@ -386,6 +500,14 @@ window.onload = () => {
     document.querySelector('#belazoDeBtn').
         addEventListener('click', event => {
             fillBelazoDe();
+        });
+    document.querySelector('#vishenerEnBtn').
+        addEventListener('click', event => {
+            fillVishenerEn();
+        });
+    document.querySelector('#vishenerDeBtn').
+        addEventListener('click', event => {
+            fillVishenerDe();
         });
     
     //
@@ -461,6 +583,20 @@ window.onload = () => {
         document.querySelector('#belazo').classList.remove('hidden');
         state.activeSection = document.querySelector('#belazo');
     });
+    document.querySelector('#vishenerPage').addEventListener('click', event => {
+        if (state.activeNvBar) {
+            state.activeNvBar.classList.remove('activeNv');
+        }
+        let tempSec = event.target;
+        tempSec.classList.add("activeNv");
+        state.activeNvBar = event.target;
+
+        if (state.activeSection) {
+            state.activeSection.classList.add('hidden');
+        }
+        document.querySelector('#vishener').classList.remove('hidden');
+        state.activeSection = document.querySelector('#vishener');
+    });
 
     //
     //
@@ -479,6 +615,9 @@ window.onload = () => {
     });
     document.querySelector("#belazoSpaceType").addEventListener('click', event => {
         spaceTypes.belazoSpace = document.querySelector("#belazoSpaceType").checked;
+    });
+    document.querySelector("#vishenerSpaceType").addEventListener('click', event => {
+        spaceTypes.vishenerSpace = document.querySelector("#vishenerSpaceType").checked;
     });
 
 };

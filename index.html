@@ -29,6 +29,9 @@
                     <li class="nav-item">
                         <a class="nav-link active rounded" aria-current="page" id="belazoPage">Белазо</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link active rounded" aria-current="page" id="vishenerPage">Виженер</a>
+                    </li>
                 </ul>
             </div>
         </nav>
@@ -269,6 +272,54 @@
                         </div>
                         <div class="pb-3">
                             <textarea class="form-control" id="belazoAfterDe" rows="1" placeholder="Результат расшифровки" disabled></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="vishener" class="hidden">
+            <div class="container py-md-5 py-3">
+                <div>
+                    <h2 class="cyan">Шифр Виженера</h2>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="vishenerSpaceType">
+                        <label class="form-check-label" for="vishenerSpaceType">Режим работы с пробелами</label>
+                    </div>
+                    <div>
+                        <div class="row">
+                            <div class="col-10">
+                                <label for="vishenerEnArea" class="form-label">Введите текст</label>
+                                <textarea class="form-control" id="vishenerEnArea" rows="3"></textarea>
+                            </div>
+                            <div class="col-2">
+                                <label class="form-label">Ключ-буква</label>
+                                <input type="text" class="form-control" placeholder="Ключ" value="Б" id="vishenerEnKey">
+                            </div>
+                        </div>
+                        <div class="pt-1 pb-2">
+                            <button id="vishenerEnBtn" class="btn btn-outline-primary">Зашифровать</button>
+                        </div>
+                        <div class="pb-3">
+                            <textarea class="form-control" id="vishenerAfterEn" rows="1" placeholder="Результат зашифровки" disabled></textarea>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="row">
+                            <div class="col-10">
+                                <label for="vishenerDeArea" class="form-label">Введите текст</label>
+                                <textarea class="form-control" id="vishenerDeArea" rows="3"></textarea>
+                            </div>
+                            <div class="col-2">
+                                <label class="form-label">Ключ-буква</label>
+                                <input type="text" class="form-control" placeholder="Ключ" value="Б" id="vishenerDeKey">
+                            </div>
+                        </div>
+                        <div class="pt-1 pb-2">
+                            <button type="button" id="vishenerDeBtn" class="btn btn-outline-primary" data-mdb-ripple-init>Расшифровать</button>
+                        </div>
+                        <div class="pb-3">
+                            <textarea class="form-control" id="vishenerAfterDe" rows="1" placeholder="Результат расшифровки" disabled></textarea>
                         </div>
                     </div>
                 </div>
