@@ -1,0 +1,12 @@
+.hidden {
+    display: none;
+}
+
+.activeNv {
+    background-color: cyan;
+}
+
+.height200 {
+    height: 200px;
+    overflow-y: scroll;
+};
