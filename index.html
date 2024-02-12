@@ -32,6 +32,15 @@
                     <li class="nav-item">
                         <a class="nav-link active rounded" aria-current="page" id="vishenerPage">Виженер</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link active rounded" aria-current="page" id="sblokPage">S-блок</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active rounded" aria-current="page" id="matrPage">Матричный</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active rounded" aria-current="page" id="playfairPage">Плэйфер</a>
+                    </li>
                 </ul>
             </div>
         </nav>
@@ -188,14 +197,6 @@
                                 <label for="tritemEnArea" class="form-label">Введите текст</label>
                                 <textarea class="form-control" id="tritemEnArea" rows="3"></textarea>
                             </div>
-                            <!-- <div class="col-2">
-                                <label class="form-label">Кол-во строк</label>
-                                <input type="number" class="form-control" placeholder="Строки" value="6" min="4" max="9" id="tritemEnRow">
-                            </div>
-                            <div class="col-2">
-                                <label class="form-label">Кол-во столбцов</label>
-                                <input type="number" class="form-control" placeholder="Столбцов" value="6" min="4" max="9" id="tritemEnCol">
-                            </div> -->
                         </div>
                         <div class="pt-1 pb-2">
                             <button id="tritemEnBtn" class="btn btn-outline-primary">Зашифровать</button>
@@ -210,14 +211,6 @@
                                 <label for="tritemDeArea" class="form-label">Введите текст</label>
                                 <textarea class="form-control" id="tritemDeArea" rows="3"></textarea>
                             </div>
-                            <!-- <div class="col-2">
-                                <label class="form-label">Кол-во строк</label>
-                                <input type="number" class="form-control" placeholder="Строки" value="6" min="4" max="9" id="tritemDeRow">
-                            </div>
-                            <div class="col-2">
-                                <label class="form-label">Кол-во столбцов</label>
-                                <input type="number" class="form-control" placeholder="Столбцов" value="6" min="4" max="9" id="tritemDeCol">
-                            </div> -->
                         </div>
                         <div class="pt-1 pb-2">
                             <button type="button" id="tritemDeBtn" class="btn btn-outline-primary" data-mdb-ripple-init>Расшифровать</button>
@@ -320,6 +313,791 @@
                         </div>
                         <div class="pb-3">
                             <textarea class="form-control" id="vishenerAfterDe" rows="1" placeholder="Результат расшифровки" disabled></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sblok" class="hidden">
+            <div class="container py-md-5 py-3">
+                <div>
+                    <h2 class="cyan">S-блок замены ГОСТ Р 34.12-2015</h2>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="sblokSpaceType">
+                        <label class="form-check-label" for="sblokSpaceType">Режим работы с текстом</label>
+                    </div>
+                    <div>
+                        <div class="row">
+                            <div class="col-12">
+                                <label for="sblokEnArea" class="form-label">Введите текст</label>
+                                <textarea class="form-control" id="sblokEnArea" rows="3"></textarea>
+                            </div>
+                        </div>
+                        <div class="pt-1 pb-2">
+                            <button id="sblokEnBtn" class="btn btn-outline-primary">Зашифровать</button>
+                        </div>
+                        <div class="pb-3">
+                            <textarea class="form-control" id="sblokAfterEn" rows="1" placeholder="Результат зашифровки" disabled></textarea>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="row">
+                            <div class="col-12">
+                                <label for="sblokDeArea" class="form-label">Введите текст</label>
+                                <textarea class="form-control" id="sblokDeArea" rows="3"></textarea>
+                            </div>
+                        </div>
+                        <div class="pt-1 pb-2">
+                            <button type="button" id="sblokDeBtn" class="btn btn-outline-primary" data-mdb-ripple-init>Расшифровать</button>
+                        </div>
+                        <div class="pb-3">
+                            <textarea class="form-control" id="sblokAfterDe" rows="1" placeholder="Результат расшифровки" disabled></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="matr" class="hidden">
+            <div class="container py-md-5 py-3">
+                <div>
+                    <h2 class="cyan">Матричный шифр</h2>
+                    <div class="row">
+                        <div class="col-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="matrSpaceType">
+                                <label class="form-check-label" for="matrSpaceType">Режим работы с текстом</label>
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <p class="text-end">Размер матрицы</p>
+                        </div> 
+                        <div class="col-1">
+                            <input type="number" class="form-control" placeholder="Строки" value="3" min="3" max="6" id="matrSize">
+                        </div>
+                        <div class="col-1">
+                            <button id="matrAcept" class="btn btn-outline-primary">Применить</button>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-8">
+                            <div class="row">
+                                <div class="col-12">
+                                    <label for="matrEnArea" class="form-label">Введите текст</label>
+                                    <textarea class="form-control" id="matrEnArea" rows="3"></textarea>
+                                </div>
+                            </div>
+                            <div class="pt-1 pb-2">
+                                <button id="matrEnBtn" class="btn btn-outline-primary">Зашифровать</button>
+                            </div>
+                            <div class="pb-3">
+                                <textarea class="form-control" id="matrAfterEn" rows="1" placeholder="Результат зашифровки" disabled></textarea>
+                            </div>
+                        </div>
+
+                        <div class="col-4">
+                            <table id="tableEn3" class="">
+                                <tbody>
+                                    <tr>
+                                        <td id="cellEn300">
+                                            <input type="number" class="" placeholder="Строки" value="1" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn301">
+                                            <input type="number" class="" placeholder="Строки" value="2" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn302">
+                                            <input type="number" class="" placeholder="Строки" value="3" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellEn310">
+                                            <input type="number" class="" placeholder="Строки" value="4" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn311">
+                                            <input type="number" class="" placeholder="Строки" value="5" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn312">
+                                            <input type="number" class="" placeholder="Строки" value="6" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellEn320">
+                                            <input type="number" class="" placeholder="Строки" value="7" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn321">
+                                            <input type="number" class="" placeholder="Строки" value="8" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn322">
+                                            <input type="number" class="" placeholder="Строки" value="9" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+
+                            <table id="tableEn4" class="hidden">
+                                <tbody>
+                                    <tr>
+                                        <td id="cellEn400">
+                                            <input type="number" class="" placeholder="Строки" value="1" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn401">
+                                            <input type="number" class="" placeholder="Строки" value="2" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn402">
+                                            <input type="number" class="" placeholder="Строки" value="3" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn403">
+                                            <input type="number" class="" placeholder="Строки" value="4" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellEn410">
+                                            <input type="number" class="" placeholder="Строки" value="5" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn411">
+                                            <input type="number" class="" placeholder="Строки" value="6" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn412">
+                                            <input type="number" class="" placeholder="Строки" value="7" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn413">
+                                            <input type="number" class="" placeholder="Строки" value="8" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellEn420">
+                                            <input type="number" class="" placeholder="Строки" value="9" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn421">
+                                            <input type="number" class="" placeholder="Строки" value="10" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn422">
+                                            <input type="number" class="" placeholder="Строки" value="11" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn423">
+                                            <input type="number" class="" placeholder="Строки" value="12" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellEn430">
+                                            <input type="number" class="" placeholder="Строки" value="13" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn431">
+                                            <input type="number" class="" placeholder="Строки" value="14" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn432">
+                                            <input type="number" class="" placeholder="Строки" value="15" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn433">
+                                            <input type="number" class="" placeholder="Строки" value="16" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+
+                            <table id="tableEn5" class="hidden">
+                                <tbody>
+                                    <tr>
+                                        <td id="cellEn500">
+                                            <input type="number" class="" placeholder="Строки" value="1" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn501">
+                                            <input type="number" class="" placeholder="Строки" value="2" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn502">
+                                            <input type="number" class="" placeholder="Строки" value="3" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn503">
+                                            <input type="number" class="" placeholder="Строки" value="4" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn504">
+                                            <input type="number" class="" placeholder="Строки" value="5" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellEn510">
+                                            <input type="number" class="" placeholder="Строки" value="6" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn511">
+                                            <input type="number" class="" placeholder="Строки" value="7" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn512">
+                                            <input type="number" class="" placeholder="Строки" value="8" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn513">
+                                            <input type="number" class="" placeholder="Строки" value="9" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn514">
+                                            <input type="number" class="" placeholder="Строки" value="10" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellEn520">
+                                            <input type="number" class="" placeholder="Строки" value="11" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn521">
+                                            <input type="number" class="" placeholder="Строки" value="12" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn522">
+                                            <input type="number" class="" placeholder="Строки" value="13" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn523">
+                                            <input type="number" class="" placeholder="Строки" value="14" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn524">
+                                            <input type="number" class="" placeholder="Строки" value="15" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellEn530">
+                                            <input type="number" class="" placeholder="Строки" value="16" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn531">
+                                            <input type="number" class="" placeholder="Строки" value="17" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn532">
+                                            <input type="number" class="" placeholder="Строки" value="18" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn533">
+                                            <input type="number" class="" placeholder="Строки" value="19" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn534">
+                                            <input type="number" class="" placeholder="Строки" value="20" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellEn540">
+                                            <input type="number" class="" placeholder="Строки" value="21" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn541">
+                                            <input type="number" class="" placeholder="Строки" value="22" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn542">
+                                            <input type="number" class="" placeholder="Строки" value="23" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn543">
+                                            <input type="number" class="" placeholder="Строки" value="24" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn544">
+                                            <input type="number" class="" placeholder="Строки" value="25" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+
+                            <table id="tableEn6" class="hidden">
+                                <tbody>
+                                    <tr>
+                                        <td id="cellEn600">
+                                            <input type="number" class="" placeholder="Строки" value="1" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn601">
+                                            <input type="number" class="" placeholder="Строки" value="2" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn602">
+                                            <input type="number" class="" placeholder="Строки" value="3" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn603">
+                                            <input type="number" class="" placeholder="Строки" value="4" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn604">
+                                            <input type="number" class="" placeholder="Строки" value="5" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn605">
+                                            <input type="number" class="" placeholder="Строки" value="6" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellEn610">
+                                            <input type="number" class="" placeholder="Строки" value="7" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn611">
+                                            <input type="number" class="" placeholder="Строки" value="8" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn612">
+                                            <input type="number" class="" placeholder="Строки" value="9" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn613">
+                                            <input type="number" class="" placeholder="Строки" value="10" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn614">
+                                            <input type="number" class="" placeholder="Строки" value="11" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn615">
+                                            <input type="number" class="" placeholder="Строки" value="12" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellEn620">
+                                            <input type="number" class="" placeholder="Строки" value="13" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn621">
+                                            <input type="number" class="" placeholder="Строки" value="14" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn622">
+                                            <input type="number" class="" placeholder="Строки" value="15" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn623">
+                                            <input type="number" class="" placeholder="Строки" value="16" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn624">
+                                            <input type="number" class="" placeholder="Строки" value="17" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn625">
+                                            <input type="number" class="" placeholder="Строки" value="18" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellEn630">
+                                            <input type="number" class="" placeholder="Строки" value="19" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn631">
+                                            <input type="number" class="" placeholder="Строки" value="20" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn632">
+                                            <input type="number" class="" placeholder="Строки" value="21" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn633">
+                                            <input type="number" class="" placeholder="Строки" value="22" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn634">
+                                            <input type="number" class="" placeholder="Строки" value="23" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn635">
+                                            <input type="number" class="" placeholder="Строки" value="24" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellEn640">
+                                            <input type="number" class="" placeholder="Строки" value="25" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn641">
+                                            <input type="number" class="" placeholder="Строки" value="26" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn642">
+                                            <input type="number" class="" placeholder="Строки" value="27" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn643">
+                                            <input type="number" class="" placeholder="Строки" value="28" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn644">
+                                            <input type="number" class="" placeholder="Строки" value="29" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn645">
+                                            <input type="number" class="" placeholder="Строки" value="30" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellEn650">
+                                            <input type="number" class="" placeholder="Строки" value="31" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn651">
+                                            <input type="number" class="" placeholder="Строки" value="32" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn652">
+                                            <input type="number" class="" placeholder="Строки" value="33" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn653">
+                                            <input type="number" class="" placeholder="Строки" value="34" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn654">
+                                            <input type="number" class="" placeholder="Строки" value="35" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellEn655">
+                                            <input type="number" class="" placeholder="Строки" value="36" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-8">
+                            <div class="row">
+                                <div class="col-12">
+                                    <label for="matrDeArea" class="form-label">Введите текст</label>
+                                    <textarea class="form-control" id="matrDeArea" rows="3"></textarea>
+                                </div>
+                            </div>
+                            <div class="pt-1 pb-2">
+                                <button type="button" id="matrDeBtn" class="btn btn-outline-primary" data-mdb-ripple-init>Расшифровать</button>
+                            </div>
+                            <div class="pb-3">
+                                <textarea class="form-control" id="matrAfterDe" rows="1" placeholder="Результат расшифровки" disabled></textarea>
+                            </div>
+                        </div>
+
+                        <div class="col-4">
+                            <table id="tableDe3" class="">
+                                <tbody>
+                                    <tr>
+                                        <td id="cellDe300">
+                                            <input type="number" class="" placeholder="Строки" value="1" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe301">
+                                            <input type="number" class="" placeholder="Строки" value="2" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe302">
+                                            <input type="number" class="" placeholder="Строки" value="3" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellDe310">
+                                            <input type="number" class="" placeholder="Строки" value="4" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe311">
+                                            <input type="number" class="" placeholder="Строки" value="5" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe312">
+                                            <input type="number" class="" placeholder="Строки" value="6" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellDe320">
+                                            <input type="number" class="" placeholder="Строки" value="7" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe321">
+                                            <input type="number" class="" placeholder="Строки" value="8" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe322">
+                                            <input type="number" class="" placeholder="Строки" value="9" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+
+                            <table id="tableDe4" class="hidden">
+                                <tbody>
+                                    <tr>
+                                        <td id="cellDe400">
+                                            <input type="number" class="" placeholder="Строки" value="1" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe401">
+                                            <input type="number" class="" placeholder="Строки" value="2" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe402">
+                                            <input type="number" class="" placeholder="Строки" value="3" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe403">
+                                            <input type="number" class="" placeholder="Строки" value="4" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellDe410">
+                                            <input type="number" class="" placeholder="Строки" value="5" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe411">
+                                            <input type="number" class="" placeholder="Строки" value="6" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe412">
+                                            <input type="number" class="" placeholder="Строки" value="7" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe413">
+                                            <input type="number" class="" placeholder="Строки" value="8" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellDe420">
+                                            <input type="number" class="" placeholder="Строки" value="9" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe421">
+                                            <input type="number" class="" placeholder="Строки" value="10" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe422">
+                                            <input type="number" class="" placeholder="Строки" value="11" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe423">
+                                            <input type="number" class="" placeholder="Строки" value="12" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellDe430">
+                                            <input type="number" class="" placeholder="Строки" value="13" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe431">
+                                            <input type="number" class="" placeholder="Строки" value="14" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe432">
+                                            <input type="number" class="" placeholder="Строки" value="15" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe433">
+                                            <input type="number" class="" placeholder="Строки" value="16" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+
+                            <table id="tableDe5" class="hidden">
+                                <tbody>
+                                    <tr>
+                                        <td id="cellDe500">
+                                            <input type="number" class="" placeholder="Строки" value="1" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe501">
+                                            <input type="number" class="" placeholder="Строки" value="2" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe502">
+                                            <input type="number" class="" placeholder="Строки" value="3" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe503">
+                                            <input type="number" class="" placeholder="Строки" value="4" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe504">
+                                            <input type="number" class="" placeholder="Строки" value="5" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellDe510">
+                                            <input type="number" class="" placeholder="Строки" value="6" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe511">
+                                            <input type="number" class="" placeholder="Строки" value="7" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe512">
+                                            <input type="number" class="" placeholder="Строки" value="8" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe513">
+                                            <input type="number" class="" placeholder="Строки" value="9" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe514">
+                                            <input type="number" class="" placeholder="Строки" value="10" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellDe520">
+                                            <input type="number" class="" placeholder="Строки" value="11" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe521">
+                                            <input type="number" class="" placeholder="Строки" value="12" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe522">
+                                            <input type="number" class="" placeholder="Строки" value="13" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe523">
+                                            <input type="number" class="" placeholder="Строки" value="14" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe524">
+                                            <input type="number" class="" placeholder="Строки" value="15" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellDe530">
+                                            <input type="number" class="" placeholder="Строки" value="16" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe531">
+                                            <input type="number" class="" placeholder="Строки" value="17" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe532">
+                                            <input type="number" class="" placeholder="Строки" value="18" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe533">
+                                            <input type="number" class="" placeholder="Строки" value="19" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe534">
+                                            <input type="number" class="" placeholder="Строки" value="20" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellDe540">
+                                            <input type="number" class="" placeholder="Строки" value="21" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe541">
+                                            <input type="number" class="" placeholder="Строки" value="22" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe542">
+                                            <input type="number" class="" placeholder="Строки" value="23" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe543">
+                                            <input type="number" class="" placeholder="Строки" value="24" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe544">
+                                            <input type="number" class="" placeholder="Строки" value="25" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+
+                            <table id="tableDe6" class="hidden">
+                                <tbody>
+                                    <tr>
+                                        <td id="cellDe600">
+                                            <input type="number" class="" placeholder="Строки" value="1" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe601">
+                                            <input type="number" class="" placeholder="Строки" value="2" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe602">
+                                            <input type="number" class="" placeholder="Строки" value="3" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe603">
+                                            <input type="number" class="" placeholder="Строки" value="4" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe604">
+                                            <input type="number" class="" placeholder="Строки" value="5" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe605">
+                                            <input type="number" class="" placeholder="Строки" value="6" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellDe610">
+                                            <input type="number" class="" placeholder="Строки" value="7" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe611">
+                                            <input type="number" class="" placeholder="Строки" value="8" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe612">
+                                            <input type="number" class="" placeholder="Строки" value="9" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe613">
+                                            <input type="number" class="" placeholder="Строки" value="10" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe614">
+                                            <input type="number" class="" placeholder="Строки" value="11" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe615">
+                                            <input type="number" class="" placeholder="Строки" value="12" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellDe620">
+                                            <input type="number" class="" placeholder="Строки" value="13" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe621">
+                                            <input type="number" class="" placeholder="Строки" value="14" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe622">
+                                            <input type="number" class="" placeholder="Строки" value="15" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe623">
+                                            <input type="number" class="" placeholder="Строки" value="16" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe624">
+                                            <input type="number" class="" placeholder="Строки" value="17" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe625">
+                                            <input type="number" class="" placeholder="Строки" value="18" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellDe630">
+                                            <input type="number" class="" placeholder="Строки" value="19" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe631">
+                                            <input type="number" class="" placeholder="Строки" value="20" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe632">
+                                            <input type="number" class="" placeholder="Строки" value="21" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe633">
+                                            <input type="number" class="" placeholder="Строки" value="22" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe634">
+                                            <input type="number" class="" placeholder="Строки" value="23" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe635">
+                                            <input type="number" class="" placeholder="Строки" value="24" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellDe640">
+                                            <input type="number" class="" placeholder="Строки" value="25" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe641">
+                                            <input type="number" class="" placeholder="Строки" value="26" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe642">
+                                            <input type="number" class="" placeholder="Строки" value="27" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe643">
+                                            <input type="number" class="" placeholder="Строки" value="28" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe644">
+                                            <input type="number" class="" placeholder="Строки" value="29" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe645">
+                                            <input type="number" class="" placeholder="Строки" value="30" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="cellDe650">
+                                            <input type="number" class="" placeholder="Строки" value="31" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe651">
+                                            <input type="number" class="" placeholder="Строки" value="32" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe652">
+                                            <input type="number" class="" placeholder="Строки" value="33" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe653">
+                                            <input type="number" class="" placeholder="Строки" value="34" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe654">
+                                            <input type="number" class="" placeholder="Строки" value="35" min="-99" max="99" id="">
+                                        </td>
+                                        <td id="cellDe655">
+                                            <input type="number" class="" placeholder="Строки" value="36" min="-99" max="99" id="">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="playfair" class="hidden">
+            <div class="container py-md-5 py-3">
+                <div>
+                    <h2 class="cyan">Шифр Плэйфера</h2>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="playfairSpaceType">
+                        <label class="form-check-label" for="playfairSpaceType">Режим работы с пробелами</label>
+                    </div>
+                    <div>
+                        <div class="row">
+                            <div class="col-10">
+                                <label for="playfairEnArea" class="form-label">Введите текст</label>
+                                <textarea class="form-control" id="playfairEnArea" rows="3"></textarea>
+                            </div>
+                            <div class="col-2">
+                                <label class="form-label">Ключ</label>
+                                <input type="text" class="form-control" placeholder="Ключ" value="Арбуз" id="playfairEnKey">
+                            </div>
+                        </div>
+                        <div class="pt-1 pb-2">
+                            <button id="playfairEnBtn" class="btn btn-outline-primary">Зашифровать</button>
+                        </div>
+                        <div class="pb-3">
+                            <textarea class="form-control" id="playfairAfterEn" rows="1" placeholder="Результат зашифровки" disabled></textarea>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="row">
+                            <div class="col-10">
+                                <label for="playfairDeArea" class="form-label">Введите текст</label>
+                                <textarea class="form-control" id="playfairDeArea" rows="3"></textarea>
+                            </div>
+                            <div class="col-2">
+                                <label class="form-label">Ключ</label>
+                                <input type="text" class="form-control" placeholder="Ключ" value="Арбуз" id="playfairDeKey">
+                            </div>
+                        </div>
+                        <div class="pt-1 pb-2">
+                            <button type="button" id="playfairDeBtn" class="btn btn-outline-primary" data-mdb-ripple-init>Расшифровать</button>
+                        </div>
+                        <div class="pb-3">
+                            <textarea class="form-control" id="playfairAfterDe" rows="1" placeholder="Результат расшифровки" disabled></textarea>
                         </div>
                     </div>
                 </div>
