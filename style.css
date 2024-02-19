@@ -21,3 +21,15 @@ td {
     border: 1px solid black;
     text-align: center;
 }
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(10, 40px);
+    grid-gap: 5px;
+}
+.grid-item {
+    width: 40px;
+    height: 40px;
+    border: 1px solid black;
+    text-align: center;
+}
