@@ -32,6 +32,14 @@ const spaceTypes = {
     playfairSpace: false,
     vertSpace: false,
     cardanoSpace: false,
+    festSpace: false,
+    shenSpace: false,
+    gamSpace: false,
+    magmaSpace: false,
+    aesSpace: false,
+    kuzSpace: false,
+    rsaSpace: false,
+    elgSpace: false,
 };
 
 const matr = {
@@ -1179,7 +1187,7 @@ function cardanoEn(text) {
                     ans[Math.floor(i / 10)][i % 10] = text[n + x];
                     x++;
                 } else {
-                    ans[Math.floor(i / 10)][i % 10] = "ф"
+                    ans[Math.floor(i / 10)][i % 10] = "о";
                 }
             }
         }
@@ -1190,7 +1198,7 @@ function cardanoEn(text) {
                     ans[Math.floor(i / 10)][i % 10] = text[n + x];
                     x++;
                 } else {
-                    ans[Math.floor(i / 10)][i % 10] = "ф";
+                    ans[Math.floor(i / 10)][i % 10] = "р";
                 }
             }
         }
@@ -1201,7 +1209,7 @@ function cardanoEn(text) {
                     ans[Math.floor(i / 10)][i % 10] = text[n + x];
                     x++;
                 } else {
-                    ans[Math.floor(i / 10)][i % 10] = "ф";
+                    ans[Math.floor(i / 10)][i % 10] = "е";
                 }
             }
         }
@@ -1212,7 +1220,7 @@ function cardanoEn(text) {
                     ans[Math.floor(i / 10)][i % 10] = text[n + x];
                     x++;
                 } else {
-                    ans[Math.floor(i / 10)][i % 10] = "ф";
+                    ans[Math.floor(i / 10)][i % 10] = "ъ";
                 }
             }
         }
@@ -1309,10 +1317,10 @@ function cardanoDe(text) {
         }
     }
 
-    while (textDe[textDe.length - 1] == "ф") {
+    textDe = charToMark(textDe);
+    while (textDe[textDe.length - 1] != ".") {
         textDe = textDe.substring(0, textDe.length - 1);
     }
-    textDe = charToMark(textDe);
     
     return textDe;
 }
@@ -1494,24 +1502,31 @@ function vertDecrypt(phrase, key) {
     const [keys, row] = vertRowsAndKeys(alphabet, phrase, key);
     let buffer = [];
     let letter = phrase.split('');
-
     for (let i = 0; i < keys.length; i++) {
         buffer.push([]);
     }
-
     const empty_slots = vertEmpty(keys, row * keys.length - phrase.length);
     let k = 0;
+    
     for (let i = 0; i < row; i++) {
         for (let j = 0; j < keys.length; j++) {
-            let elem;
-            if (empty_slots) {
-                elem = empty_slots[k];
+            let elem = empty_slots?.[k];
+            let val;
+            if (i + 1 === row && elem !== null && elem - 1 === j) {
                 k++;
+                val = -1;
+            } else {
+                let nextLetter = letter.shift();
+                val = nextLetter !== undefined ? alphabet.indexOf(nextLetter) : -1;
             }
-            const val = i + 1 === row && elem && elem - 1 === j ? -1 : letter.length > 0 ? alphabet.indexOf(letter.shift()) : -1;
+            
+            if (!buffer[j]) {
+                buffer[j] = [];
+            }
             buffer[j].push(val);
         }
     }
+
     buffer = vertSort(vertCheckKeys(keys), buffer);
     
     let result = vertResult(alphabet, buffer, row, keys.length);
@@ -1552,7 +1567,6 @@ function fillVertDe() {
 
     document.getElementById('vertAfterDe').value = newText;
 }
-
 
 //
 // Сеть Фейстеля
@@ -1624,8 +1638,8 @@ function festNet32(val, keys) {
     for (let key of keys) {
         let buffer = [...left];
         buffer.push(...right);
-        console.log(bytesToHex(buffer));
         [left, right] = festNetNode(left, right, key);
+        // console.log(bytesToHex(left) + " " + bytesToHex(right));
     }
     let temp = right;
     right = left
@@ -1646,6 +1660,7 @@ function festProto(phrase, keys) {
     return result;
 }
 
+// festEncrypt("fedcba9876543210", "ffeeddccbbaa99887766554433221100f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff")
 function festEncrypt(phrase, key) {
     key = hexToBytes(key);
     let expandedKeys = festExpandKey(key);
@@ -1659,15 +1674,1827 @@ function festDecrypt(phrase, key) {
     return festProto(phrase, expandedKeys);
 }
 
-function festPrepairPhrase(phrase) {
-    return bytesToHex(str_to_bytes(phrase, 8));
+function festPrepairPhrase(phrase, key, cryptType) {
+    if (cryptType) {
+        phrase = markToChar(phrase).toLocaleLowerCase();
+
+        let phraseLen = phrase.length;
+        if (phrase.length % 4 != 0) {
+            for (let i = 0; i < 4 - (phraseLen % 4); i++) {
+                phrase += 'ф';
+            }
+        }
+        phrase = new TextEncoder().encode(phrase);
+        phrase = bytesToHex(phrase);
+
+        let newPhrase = ""
+        phraseLen = phrase.length;
+        for (let k = 0; k < phraseLen; k += 16) {
+            let crypt_phrase = phrase.slice(k, k + 16);
+            let temp = festEncrypt(crypt_phrase, key);
+            newPhrase += temp;
+        }
+        return newPhrase;
+    } else {
+        let newPhrase = "";
+        let phraseLen = phrase.length;
+        for (let k = 0; k < phraseLen; k += 16) {
+            let crypt_phrase = phrase.slice(k, k + 16);
+            let temp = festDecrypt(crypt_phrase, key);
+            newPhrase += temp;
+        }
+
+        newPhrase = hexToBytes(newPhrase);
+        newPhrase = new TextDecoder().decode(newPhrase);
+        while (newPhrase[newPhrase.length - 1] == "ф") {
+            newPhrase = newPhrase.substring(0, newPhrase.length - 1);
+        }
+
+        newPhrase = charToMark(newPhrase);
+        return newPhrase;
+    }
+}
+
+function fillFestEn() {
+    let text = document.querySelector('#festEnArea').value;
+    let key = document.querySelector("#festEnKey").value;
+    let newText = "";
+
+    if (spaceTypes.festSpace) {
+        if (key.length != 64) {
+            newText = "Неправильная длина ключа";
+        } else {
+            newText = spaceWithStart(text);
+            newText = festPrepairPhrase(newText, key, true);
+        }
+    } else {
+        newText = spaceWithout(text);
+        newText = bytesToHex(gFest(hexToBytes(newText), hexToBytes(key)));
+    }
+    
+    document.getElementById('festAfterEn').value = newText;
+}
+
+function fillFestDe() {
+    let text = document.querySelector('#festDeArea').value;
+    let key = document.querySelector("#festDeKey").value;
+    let newText = ""
+
+    if (spaceTypes.festSpace) {
+        if (key.length != 64) {
+            newText = "Неправильная длина ключа";
+        } else {
+            newText = festPrepairPhrase(text, key, false);
+            newText = spaceWithEnd(newText);
+        }
+    } else {
+        newText = "Без расшифровки g";
+    }
+
+    document.getElementById('festAfterDe').value = newText;
+}
+
+
+//
+// Блокнот Шеннона
+//
+const shenState = {
+    aEn: 5,
+    cEn: 5,
+    tEn: 3,
+
+    aDe: 5,
+    cDe: 5,
+    tDe: 3,
+    len: 32
+}
+
+function shenEncrypt(phrase) {
+    const alphabet = "абвгдежзийклмнопрстуфхцчшщъыьэюя";
+    let newPhrase = "";
+    phrase = markToChar(phrase).toLocaleLowerCase();
+
+    for (let i = 0; i < phrase.length; i++) {
+        let step =  (shenState.aEn * shenState.tEn + shenState.cEn) % shenState.len;
+        shenState.tEn = step;
+        let pos = (step + alphabet.indexOf(phrase[i])) % alphabet.length;
+        newPhrase += alphabet[pos];
+    }
+    return newPhrase;
+}
+
+function shenDecrypt(phrase) {
+    const alphabet = "абвгдежзийклмнопрстуфхцчшщъыьэюя";
+    let newPhrase = "";
+    for (let i = 0; i < phrase.length; i++) {
+        let step = (shenState.aDe * shenState.tDe + shenState.cDe) % shenState.len;
+        shenState.tDe = step;
+        let pos = (alphabet.indexOf(phrase[i]) - step + alphabet.length) % alphabet.length;
+        newPhrase += alphabet[pos];
+    }
+
+    newPhrase = charToMark(newPhrase);
+    return newPhrase;
+}
+
+function fillShenEn() {
+    let text = document.querySelector('#shenEnArea').value;
+    let newText = "";
+
+    let keya = Number(document.querySelector('#shenEnKeya').value);
+    let keyc = Number(document.querySelector('#shenEnKeyc').value);
+    let keyt = Number(document.querySelector('#shenEnKeyt').value);
+
+    shenState.aEn = keya;
+    shenState.cEn = keyc;
+    shenState.tEn = keyt;
+
+    if ((keya<1) || (keyc<1) || (keyt<1) || (keya>32) || (keyc>32) || (keyt>32) || (keyc%2==0) || (keya%4!=1)) {
+        if ((keya == 0) || (keya % 4 != 1) || (keya < 1) || (keya > 32)) {
+            newText += "Остаток от деления a на 4 должен быть равен 1\n";
+        }
+        if ((keyc < 1) || (keyc % 2 == 0) || (keyc < 1) || (keyc > 32)) {
+            newText += "c должно быть нечетным\n"
+        }
+        if ((keyt < 1) || (keyt > 32)) {
+            newText += "t0 должно быть 1 < t0 < 32"
+        }
+    } else {
+        if (spaceTypes.shenSpace) {
+            newText = spaceWithStart(text);
+            newText = shenEncrypt(newText);
+        } else {
+            newText = spaceWithout(text);
+            newText = shenEncrypt(newText);
+        }
+    }
+    
+    document.getElementById('shenAfterEn').value = newText;
+}
+
+function fillShenDe() {
+    let text = document.querySelector('#shenDeArea').value;
+    let newText = "";
+
+    let keya = Number(document.querySelector('#shenDeKeya').value);
+    let keyc = Number(document.querySelector('#shenDeKeyc').value);
+    let keyt = Number(document.querySelector('#shenDeKeyt').value);
+
+    shenState.aDe = keya;
+    shenState.cDe = keyc;
+    shenState.tDe = keyt;
+
+    if ((keya==0) || (keyc==0) || (keyt==0) || (keyt>32) || (keyc%2==0) || (keya%4!=1)) {
+        if ((keya == 0) || (keya % 4 != 1)) {
+            newText += "Остаток от деления a на 4 должен быть равен 1\n";
+        }
+        if ((keyc == 0) || (keyc % 2 == 0)) {
+            newText += "c должно быть нечетным\n"
+        }
+        if ((keyt == 0) || (keyt > 32)) {
+            newText += "t0 должно быть 1 < t0 < 32"
+        }
+    } else {
+        if (spaceTypes.shenSpace) {
+            newText = shenDecrypt(text);
+            newText = spaceWithEnd(newText);
+        } else {
+            newText = spaceWithout(text);
+            newText = shenDecrypt(newText);
+        }
+    }
+    
+    document.getElementById('shenAfterDe').value = newText;
+}
+
+
+//
+// Гаммирование 
+//
+function gamAddXor(left, right) {
+    return left.map((leftValue, index) => leftValue ^ right[index]);
+}
+
+function gamCtr(counter) {
+    let buffer = 0;
+    const bits = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01];
+    let result = counter.slice().reverse().map((elem, index) => {
+        buffer = elem + bits[bits.length - 1 - index] + (buffer >> 8);
+        return buffer & 0xff;
+    });
+    return result.reverse();
+}
+
+function nullLen(vec) {
+    let count = 0;
+    for (let i = vec.length - 1; i >= 0; i--) {
+        if (vec[i] === 0) count++;
+        else break;
+    }
+    return count;
+}
+
+function gamCtrMagma(phrase, initV, key) {
+    let initVBytes = hexToBytes(initV, 4);
+    let ctr = [...initVBytes, 0x00, 0x00, 0x00, 0x00];
+    let keyBytes = hexToBytes(key, 32);
+    let keys = festExpandKey(keyBytes);
+    let gamma;
+    let phraseBytes = hexToBytes(phrase, 8);
+    let nullCount = nullLen(phraseBytes);
+    let resultV = [];
+
+    for (let i = 0; i < phraseBytes.length; i += 8) {
+        let part = phraseBytes.slice(i, i + 8);
+        gamma = festNet32(ctr, keys);
+        ctr = gamCtr(ctr);
+        resultV.push(...gamAddXor(part, gamma));
+    }
+
+    return bytesToHex(resultV.slice(0, resultV.length - nullCount));
+}
+
+function gamPrepairPhrase(phrase, iv, key, cryptType) {
+    if (cryptType) {
+        phrase = markToChar(phrase).toLocaleLowerCase();
+
+        let phraseLen = phrase.length;
+        if (phrase.length % 16 != 0) {
+            for (let i = 0; i < 16 - (phraseLen % 16); i++) {
+                phrase += 'ф';
+            }
+        }
+        phrase = new TextEncoder().encode(phrase);
+        phrase = bytesToHex(phrase);
+
+        let newPhrase = ""
+        phraseLen = phrase.length;
+        for (let k = 0; k < phraseLen; k += 64) {
+            let crypt_phrase = phrase.slice(k, k + 64);
+            let temp = gamCtrMagma(crypt_phrase, iv, key);
+            newPhrase += temp;
+        }
+        return newPhrase;
+    } else {
+        let newPhrase = "";
+        let phraseLen = phrase.length;
+        for (let k = 0; k < phraseLen; k += 64) {
+            let crypt_phrase = phrase.slice(k, k + 64);
+            let temp = gamCtrMagma(crypt_phrase, iv, key);
+            newPhrase += temp;
+        }
+
+        newPhrase = hexToBytes(newPhrase);
+        newPhrase = new TextDecoder().decode(newPhrase);
+        while (newPhrase[newPhrase.length - 1] == "ф") {
+            newPhrase = newPhrase.substring(0, newPhrase.length - 1);
+        }
+
+        newPhrase = charToMark(newPhrase);
+        return newPhrase;
+    }
+}
+
+function fillGamEn() {
+    let text = document.querySelector('#gamEnArea').value;
+    let key = document.querySelector("#gamEnKey").value;
+    let iv = document.querySelector("#gamEnIv").value;
+    let newText = "";
+
+    if (spaceTypes.gamSpace) {
+        if (key.length != 64) {
+            newText = "Неправильная длина ключа";
+        } else {
+            newText = spaceWithStart(text);
+            newText = gamPrepairPhrase(newText, iv, key, true);
+        }
+    } else {
+        newText = gamCtrMagma(text, iv, key);
+    }
+    
+    document.getElementById('gamAfterEn').value = newText;
+}
+
+function fillGamDe() {
+    let text = document.querySelector('#gamDeArea').value;
+    let key = document.querySelector("#gamDeKey").value;
+    let iv = document.querySelector("#gamDeIv").value;
+    let newText = ""
+
+    if (spaceTypes.gamSpace) {
+        if (key.length != 64) {
+            newText = "Неправильная длина ключа";
+        } else {
+            newText = gamPrepairPhrase(text, iv, key, false);
+            newText = spaceWithEnd(newText);
+        }
+    } else {
+        newText = gamCtrMagma(text, iv, key);
+    }
+
+    document.getElementById('gamAfterDe').value = newText;
+}
+
+
+//
+// A5/1
+//
+const A51 = {
+    R1MASK: 0x07FFFF,
+    R2MASK: 0x3FFFFF,
+    R3MASK: 0x7FFFFF,
+
+    R1MID: 0x000100,
+    R2MID: 0x000400,
+    R3MID: 0x000400,
+
+    R1TAPS: 0x072000,
+    R2TAPS: 0x300000,
+    R3TAPS: 0x700080,
+
+    R1OUT: 0x040000,
+    R2OUT: 0x200000,
+    R3OUT: 0x400000,
+
+    R1: 0,
+    R2: 0,
+    R3: 0
+}
+
+function A51parity(x) {
+    x ^= x >> 16;
+    x ^= x >> 8;
+    x ^= x >> 4;
+    x ^= x >> 2;
+    x ^= x >> 1;
+    return x & 1;
+}
+
+function A51clockone(reg, mask, taps) {
+    let t = reg & taps;
+    reg = (reg << 1) & mask;
+    reg |= A51parity(t);
+    return reg;
+}
+
+function A51majority() {
+    let sum = A51parity(A51.R1 & A51.R1MID) + A51parity(A51.R2 & A51.R2MID) + A51parity(A51.R3 & A51.R3MID);
+    return sum >= 2 ? 1 : 0;
+}
+
+function A51clock() {
+    let maj = A51majority();
+    if (((A51.R1 & A51.R1MID) != 0) == maj)
+        A51.R1 = A51clockone(A51.R1, A51.R1MASK, A51.R1TAPS);
+    if (((A51.R2 & A51.R2MID) != 0) == maj)
+        A51.R2 = A51clockone(A51.R2, A51.R2MASK, A51.R2TAPS);
+    if (((A51.R3 & A51.R3MID) != 0) == maj)
+        A51.R3 = A51clockone(A51.R3, A51.R3MASK, A51.R3TAPS);
+}
+
+function A51clockallthree() {
+    A51.R1 = A51clockone(A51.R1, A51.R1MASK, A51.R1TAPS);
+    A51.R2 = A51clockone(A51.R2, A51.R2MASK, A51.R2TAPS);
+    A51.R3 = A51clockone(A51.R3, A51.R3MASK, A51.R3TAPS);
+
+}
+
+function A51getBit() {
+    return A51parity(A51.R1 & A51.R1OUT) ^ A51parity(A51.R2 & A51.R2OUT) ^ A51parity(A51.R3 & A51.R3OUT);
+}
+
+function A51keySetup(key, frame) {
+    A51.R1 = A51.R2 = A51.R3 = 0;
+    for (let i = 0; i < 64; i++) {
+        A51clockallthree();
+        let keyBit = (key[(i / 8) | 0] >> (i & 7)) & 1;
+        A51.R1 ^= keyBit; A51.R2 ^= keyBit; A51.R3 ^= keyBit;
+    }
+
+    for (let i = 0; i < 22; i++) {
+        A51clockallthree();
+        let frameBit = (frame >> i) & 1;
+        A51.R1 ^= frameBit; A51.R2 ^= frameBit; A51.R3 ^= frameBit;
+    }
+
+    for (let i = 0; i < 100; i++) {
+        A51clock();
+    }
+}
+
+function A51run(AtoBkeystream, BtoAkeystream) {
+    for (let i = 0; i <= Math.floor(113 / 8); i++)
+        AtoBkeystream[i] = BtoAkeystream[i] = 0;
+
+    for (let i = 0; i < 114; i++) {
+        A51clock();
+        AtoBkeystream[Math.floor(i / 8)] |= A51getBit() << (7 - (i & 7));
+    }
+
+    for (let i = 0; i < 114; i++) {
+        A51clock();
+        BtoAkeystream[Math.floor(i / 8)] |= A51getBit() << (7 - (i & 7));
+    }
+}
+
+function A51get_bits(number, ander, size) {
+    let arr = []
+    while (size > 0) {
+        r = number & ander
+        arr.push(r != 0 ? 1 : 0);
+        ander >>= 1;
+        size--;
+    }
+    return arr;
+}
+
+function A51split_gamma(gammas) {
+    let spliters = [8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 2];
+    let res = []
+    let val = 0;
+    let len = 0;
+    for (let gamma of gammas) {
+        for (let [item, size] of gamma.map((it, i) => [it, spliters[i]])) {
+            for (let bit of A51get_bits(item, 0xf0, size)) {
+                if (len == 8) {
+                    res.push(val);
+                    val = 0;
+                    len = 0;
+                }
+                val = (val << 1) | bit;
+                len++;
+            }
+        }
+    }
+    return res;
+}
+
+function A51get_gamma(key, text_length_bits) {
+    let frame = 0x21;
+    let result = [];
+    let count = (text_length_bits / 114) | 0 + text_length_bits % 114 != 0 ? 1 : 0;
+    let AtoB = new Array(15), BtoA = new Array(15);
+    for (let i = 0; i < count; i++) {
+        A51keySetup(key, frame);
+        // console.log((A51.R1 >>> 0).toString(2), (A51.R2 >>> 0).toString(2), (A51.R3 >>> 0).toString(2))
+        A51run(AtoB, BtoA);
+        result.push([...AtoB]);
+    }
+    return result;
+}
+
+/**
+ * @param phrase Побайтовое представление строки
+ * @param key Байтовый массив из 8 элементов
+ */
+function A51encryption(phrase, key) {
+    let gammas = A51get_gamma(key, phrase.length * 8);
+    let gamma = A51split_gamma(gammas)
+    let result = [];
+    for (let i = 0; i < phrase.length; i++) {
+        result.push(phrase[i] ^ gamma[i])
+    }
+    return result;
+}
+
+function fillA51En() {
+    let text = document.querySelector('#a51EnArea').value;
+    let key = document.querySelector("#a51EnKey").value;
+    let newText = markToChar(text);
+    newText = spaceWithStart(newText);
+    newText = new TextEncoder().encode(newText);
+
+    if (key.length != 16) {
+        newText = "Неправильная длина ключа";
+    } else {
+        newText = bytesToHex(A51encryption(newText, hexToBytes(key)));
+    }
+
+    document.getElementById('a51AfterEn').value = newText;
+}
+
+function fillA51De() {
+    let text = document.querySelector('#a51DeArea').value;
+    let key = document.querySelector("#a51DeKey").value;
+    let newText = hexToBytes(text);
+
+    if (key.length != 16) {
+        newText = "Неправильная длина ключа";
+    } else {
+        newText = A51encryption(newText, hexToBytes(key));
+        newText = hexToBytes(bytesToHex(newText));
+        newText = new TextDecoder().decode(newText);
+        newText = charToMark(newText);
+        newText = spaceWithEnd(newText);
+    }
+
+    document.getElementById('a51AfterDe').value = newText;
+}
+
+
+//
+// A5/2
+//
+const A52 = {
+    R1MASK: 0x07FFFF,
+    R2MASK: 0x3FFFFF,
+    R3MASK: 0x7FFFFF,
+    R4MASK: 0x01FFFF,
+
+    R4TAP1: 0x000400,
+    R4TAP2: 0x000008,
+    R4TAP3: 0x000080,
+
+    R1TAPS: 0x072000,
+    R2TAPS: 0x300000,
+    R3TAPS: 0x700080,
+    R4TAPS: 0x010800,
+    R1: 0,
+    R2: 0,
+    R3: 0,
+    R4: 0
+}
+
+function A52parity(x) {
+    x ^= x >> 16;
+    x ^= x >> 8;
+    x ^= x >> 4;
+    x ^= x >> 2;
+    x ^= x >> 1;
+    return x & 1;
+}
+
+function A52clockone(reg, mask, taps, loadedBit) {
+    let t = reg & taps;
+    reg = (reg << 1) & mask;
+    reg |= A52parity(t);
+    reg |= loadedBit;
+    return reg;
+}
+
+function A52majority(w1, w2, w3) {
+
+    let sum = (w1 != 0) + (w2 != 0) + (w3 != 0);
+    // console.log((w1 != 0 ? 1: 0), (w2 != 0 ? 1: 0), (w3 != 0 ? 1: 0), (sum >= 2 ? 1 : 0))
+    console.log(w1+w2+w3);
+    console.log(sum);
+    return sum >= 2 ? 1 : 0;
+}
+
+function A52clock(allP, loaded) {
+    console.log(A52.R1, A52.R2, A52.R3, A52.R4);
+    let maj = A52majority(A52.R4 & A52.R4TAP1, A52.R4 & A52.R4TAP2, A52.R4 & A52.R4TAP3);
+    console.log(A52.R4TAP1&A52.R4, A52.R4TAP2&A52.R4, A52.R4TAP3&A52.R4);
+
+    if (allP || (((A52.R4 & A52.R4TAP1) != 0) == maj))
+        A52.R1 = A52clockone(A52.R1, A52.R1MASK, A52.R1TAPS, loaded << 15);
+    if (allP || (((A52.R4 & A52.R4TAP2) != 0) == maj))
+        A52.R2 = A52clockone(A52.R2, A52.R2MASK, A52.R2TAPS, loaded << 16);
+    if (allP || (((A52.R4 & A52.R4TAP3) != 0) == maj))
+        A52.R3 = A52clockone(A52.R3, A52.R3MASK, A52.R3TAPS, loaded << 18);
+    A52.R4 = A52clockone(A52.R4, A52.R4MASK, A52.R4TAPS, loaded << 10);
+    
+    // k += 1;
+}
+
+function A52getBit() {
+    let topBits = (((A52.R1 >> 18) ^ (A52.R2 >> 21) ^ (A52.R3 >> 22)) & 0x01);
+    let nowBit = this.delayBit || 0;
+    this.delayBit = (
+        topBits
+        ^ A52majority(A52.R1 & 0x8000, (~A52.R1) & 0x4000, A52.R1 & 0x1000)
+        ^ A52majority((~A52.R2) & 0x10000, A52.R2 & 0x2000, A52.R2 & 0x200)
+        ^ A52majority(A52.R3 & 0x40000, A52.R3 & 0x10000, (~A52.R3) & 0x2000)
+    );
+    console.log(this.delayBit);
+    return nowBit;
+}
+
+function A52keySetup(key, frame) {
+    A52.R1 = A52.R2 = A52.R3 = 0;
+    A52.R4 = 0;
+    for (let i = 0; i < 64; i++) {
+        A52clock(1, 0);
+        let keyBit = (key[(i / 8) | 0] >> (i & 7)) & 1;
+        A52.R1 ^= keyBit; A52.R2 ^= keyBit; A52.R3 ^= keyBit;
+        A52.R4 ^= keyBit;
+    }
+
+    for (let i = 0; i < 22; i++) {
+        A52clock(1, i === 21);
+        let frameBit = (frame >> i) & 1;
+        A52.R1 ^= frameBit; A52.R2 ^= frameBit; A52.R3 ^= frameBit; A52.R4 ^= frameBit;
+    }
+
+    for (let i = 0; i < 100; i++) {
+        A52clock(0, 0);
+    }
+
+    A52getBit();
+}
+
+function A52run(AtoBkeystream, BtoAkeystream) {
+    for (let i = 0; i <= Math.floor(113 / 8); i++)
+        AtoBkeystream[i] = BtoAkeystream[i] = 0;
+
+    for (let i = 0; i < 114; i++) {
+        A52clock(0, 0);
+        console.log(' ');
+        AtoBkeystream[Math.floor(i / 8)] |= A52getBit() << (7 - (i & 7));
+    }
+
+    for (let i = 0; i < 114; i++) {
+        A52clock(0, 0);
+        BtoAkeystream[Math.floor(i / 8)] |= A52getBit() << (7 - (i & 7));
+    }
+}
+
+function A52get_bits(number, ander, size) {
+    let arr = []
+    while (size > 0) {
+        r = number & ander
+        arr.push(r != 0 ? 1 : 0);
+        ander >>= 1;
+        size--;
+    }
+    return arr;
+}
+
+function A52split_gamma(gammas) {
+    let spliters = [8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 2];
+    let res = []
+    let val = 0;
+    let len = 0;
+    for (let gamma of gammas) {
+        for (let [item, size] of gamma.map((it, i) => [it, spliters[i]])) {
+            for (let bit of A52get_bits(item, 0xf0, size)) {
+                if (len == 8) {
+                    res.push(val);
+                    val = 0;
+                    len = 0;
+                }
+                val = (val << 1) | bit;
+                len++;
+            }
+        }
+    }
+    return res;
+}
+
+function A52get_gamma(key, text_length_bits) {
+    let frame = 0x21;
+    let result = [];
+    let count = (text_length_bits / 114) | 0 + text_length_bits % 114 != 0 ? 1 : 0;
+    let AtoB = new Array(15), BtoA = new Array(15);
+    for (let i = 0; i < count; i++) {
+        A52keySetup(key, frame);
+        console.log(' ');
+        console.log(' ');
+        // console.log(A51.R1, A51.R2, A51.R3, A51.R4);
+        A52run(AtoB, BtoA);
+        result.push([...AtoB]);
+    }
+    return result;
+}
+
+/**
+ * @param phrase Побайтовое представление строки
+ * @param key Байтовый массив из 8 элементов
+ */
+function A52encryption(phrase, key) {
+    let gammas = A52get_gamma(key, phrase.length * 8);
+    let gamma = A52split_gamma(gammas)
+    let result = [];
+    for (let i = 0; i < phrase.length; i++) {
+        result.push(phrase[i] ^ gamma[i])
+    }
+    return result;
+}
+
+function fillA52En() {
+    let text = document.querySelector('#a52EnArea').value;
+    let key = document.querySelector("#a52EnKey").value;
+    let newText = markToChar(text);
+    newText = spaceWithStart(newText);
+    newText = new TextEncoder().encode(newText);
+
+    if (key.length != 16) {
+        newText = "Неправильная длина ключа";
+    } else {
+        newText = bytesToHex(A52encryption(newText, hexToBytes(key)));
+    }
+
+    document.getElementById('a52AfterEn').value = newText;
+}
+
+function fillA52De() {
+    let text = document.querySelector('#a52DeArea').value;
+    let key = document.querySelector("#a52DeKey").value;
+    let newText = hexToBytes(text);
+
+    if (key.length != 16) {
+        newText = "Неправильная длина ключа";
+    } else {
+        newText = A52encryption(newText, hexToBytes(key));
+        newText = hexToBytes(bytesToHex(newText));
+        newText = new TextDecoder().decode(newText);
+        newText = charToMark(newText);
+        newText = spaceWithEnd(newText);
+    }
+
+    document.getElementById('a52AfterDe').value = newText;
 }
 
 //
+// Магма
 //
-//
-//
+function magmaEncrypt(phrase, key) {
+    key = hexToBytes(key);
+    let expandedKeys = festExpandKey(key);
+    return festProto(phrase, expandedKeys);
+}
 
+function magmaDecrypt(phrase, key) {
+    key = hexToBytes(key);
+    let expandedKeys = festExpandKey(key);
+    expandedKeys.reverse();
+    return festProto(phrase, expandedKeys);
+}
+
+function magmaPrepairPhrase(phrase, key, cryptType) {
+    if (cryptType) {
+        phrase = markToChar(phrase).toLocaleLowerCase();
+
+        let phraseLen = phrase.length;
+        if (phrase.length % 4 != 0) {
+            for (let i = 0; i < 4 - (phraseLen % 4); i++) {
+                phrase += 'ф';
+            }
+        }
+        phrase = new TextEncoder().encode(phrase);
+        phrase = bytesToHex(phrase);
+
+        let newPhrase = ""
+        phraseLen = phrase.length;
+        for (let k = 0; k < phraseLen; k += 16) {
+            let crypt_phrase = phrase.slice(k, k + 16);
+            let temp = magmaEncrypt(crypt_phrase, key);
+            newPhrase += temp;
+        }
+        return newPhrase;
+    } else {
+        let newPhrase = "";
+        let phraseLen = phrase.length;
+        for (let k = 0; k < phraseLen; k += 16) {
+            let crypt_phrase = phrase.slice(k, k + 16);
+            let temp = magmaDecrypt(crypt_phrase, key);
+            newPhrase += temp;
+        }
+
+        newPhrase = hexToBytes(newPhrase);
+        newPhrase = new TextDecoder().decode(newPhrase);
+        while (newPhrase[newPhrase.length - 1] == "ф") {
+            newPhrase = newPhrase.substring(0, newPhrase.length - 1);
+        }
+
+        newPhrase = charToMark(newPhrase);
+        return newPhrase;
+    }
+}
+
+function fillMagmaEn() {
+    let text = document.querySelector('#magmaEnArea').value;
+    let key = document.querySelector("#magmaEnKey").value;
+    let newText = "";
+
+    if (spaceTypes.magmaSpace) {
+        if (key.length != 64) {
+            newText = "Неправильная длина ключа";
+        } else {
+            newText = spaceWithStart(text);
+            newText = magmaPrepairPhrase(newText, key, true);
+        }
+    } else {
+        newText = spaceWithout(text);
+        newText = magmaEncrypt(text, key);
+    }
+    
+    document.getElementById('magmaAfterEn').value = newText;
+}
+
+function fillMagmaDe() {
+    let text = document.querySelector('#magmaDeArea').value;
+    let key = document.querySelector("#magmaDeKey").value;
+    let newText = ""
+
+    if (spaceTypes.magmaSpace) {
+        if (key.length != 64) {
+            newText = "Неправильная длина ключа";
+        } else {
+            newText = magmaPrepairPhrase(text, key, false);
+            newText = spaceWithEnd(newText);
+        }
+    } else {
+        newText = magmaDecrypt(text, key);
+    }
+
+    document.getElementById('magmaAfterDe').value = newText;
+}
+
+
+//
+// AES
+//
+const AES = {
+    NK: 4,
+    NB: 4,
+    NR: 10
+}
+
+const AESS = [
+    0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
+    0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
+    0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15,
+    0x04, 0xc7, 0x23, 0xc3, 0x18, 0x96, 0x05, 0x9a, 0x07, 0x12, 0x80, 0xe2, 0xeb, 0x27, 0xb2, 0x75,
+    0x09, 0x83, 0x2c, 0x1a, 0x1b, 0x6e, 0x5a, 0xa0, 0x52, 0x3b, 0xd6, 0xb3, 0x29, 0xe3, 0x2f, 0x84,
+    0x53, 0xd1, 0x00, 0xed, 0x20, 0xfc, 0xb1, 0x5b, 0x6a, 0xcb, 0xbe, 0x39, 0x4a, 0x4c, 0x58, 0xcf,
+    0xd0, 0xef, 0xaa, 0xfb, 0x43, 0x4d, 0x33, 0x85, 0x45, 0xf9, 0x02, 0x7f, 0x50, 0x3c, 0x9f, 0xa8,
+    0x51, 0xa3, 0x40, 0x8f, 0x92, 0x9d, 0x38, 0xf5, 0xbc, 0xb6, 0xda, 0x21, 0x10, 0xff, 0xf3, 0xd2,
+    0xcd, 0x0c, 0x13, 0xec, 0x5f, 0x97, 0x44, 0x17, 0xc4, 0xa7, 0x7e, 0x3d, 0x64, 0x5d, 0x19, 0x73,
+    0x60, 0x81, 0x4f, 0xdc, 0x22, 0x2a, 0x90, 0x88, 0x46, 0xee, 0xb8, 0x14, 0xde, 0x5e, 0x0b, 0xdb,
+    0xe0, 0x32, 0x3a, 0x0a, 0x49, 0x06, 0x24, 0x5c, 0xc2, 0xd3, 0xac, 0x62, 0x91, 0x95, 0xe4, 0x79,
+    0xe7, 0xc8, 0x37, 0x6d, 0x8d, 0xd5, 0x4e, 0xa9, 0x6c, 0x56, 0xf4, 0xea, 0x65, 0x7a, 0xae, 0x08,
+    0xba, 0x78, 0x25, 0x2e, 0x1c, 0xa6, 0xb4, 0xc6, 0xe8, 0xdd, 0x74, 0x1f, 0x4b, 0xbd, 0x8b, 0x8a,
+    0x70, 0x3e, 0xb5, 0x66, 0x48, 0x03, 0xf6, 0x0e, 0x61, 0x35, 0x57, 0xb9, 0x86, 0xc1, 0x1d, 0x9e,
+    0xe1, 0xf8, 0x98, 0x11, 0x69, 0xd9, 0x8e, 0x94, 0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf,
+    0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16,
+];
+const AESSReverse = [
+    0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0xa3, 0x9e, 0x81, 0xf3, 0xd7, 0xfb,
+    0x7c, 0xe3, 0x39, 0x82, 0x9b, 0x2f, 0xff, 0x87, 0x34, 0x8e, 0x43, 0x44, 0xc4, 0xde, 0xe9, 0xcb,
+    0x54, 0x7b, 0x94, 0x32, 0xa6, 0xc2, 0x23, 0x3d, 0xee, 0x4c, 0x95, 0x0b, 0x42, 0xfa, 0xc3, 0x4e,
+    0x08, 0x2e, 0xa1, 0x66, 0x28, 0xd9, 0x24, 0xb2, 0x76, 0x5b, 0xa2, 0x49, 0x6d, 0x8b, 0xd1, 0x25,
+    0x72, 0xf8, 0xf6, 0x64, 0x86, 0x68, 0x98, 0x16, 0xd4, 0xa4, 0x5c, 0xcc, 0x5d, 0x65, 0xb6, 0x92,
+    0x6c, 0x70, 0x48, 0x50, 0xfd, 0xed, 0xb9, 0xda, 0x5e, 0x15, 0x46, 0x57, 0xa7, 0x8d, 0x9d, 0x84,
+    0x90, 0xd8, 0xab, 0x00, 0x8c, 0xbc, 0xd3, 0x0a, 0xf7, 0xe4, 0x58, 0x05, 0xb8, 0xb3, 0x45, 0x06,
+    0xd0, 0x2c, 0x1e, 0x8f, 0xca, 0x3f, 0x0f, 0x02, 0xc1, 0xaf, 0xbd, 0x03, 0x01, 0x13, 0x8a, 0x6b,
+    0x3a, 0x91, 0x11, 0x41, 0x4f, 0x67, 0xdc, 0xea, 0x97, 0xf2, 0xcf, 0xce, 0xf0, 0xb4, 0xe6, 0x73,
+    0x96, 0xac, 0x74, 0x22, 0xe7, 0xad, 0x35, 0x85, 0xe2, 0xf9, 0x37, 0xe8, 0x1c, 0x75, 0xdf, 0x6e,
+    0x47, 0xf1, 0x1a, 0x71, 0x1d, 0x29, 0xc5, 0x89, 0x6f, 0xb7, 0x62, 0x0e, 0xaa, 0x18, 0xbe, 0x1b,
+    0xfc, 0x56, 0x3e, 0x4b, 0xc6, 0xd2, 0x79, 0x20, 0x9a, 0xdb, 0xc0, 0xfe, 0x78, 0xcd, 0x5a, 0xf4,
+    0x1f, 0xdd, 0xa8, 0x33, 0x88, 0x07, 0xc7, 0x31, 0xb1, 0x12, 0x10, 0x59, 0x27, 0x80, 0xec, 0x5f,
+    0x60, 0x51, 0x7f, 0xa9, 0x19, 0xb5, 0x4a, 0x0d, 0x2d, 0xe5, 0x7a, 0x9f, 0x93, 0xc9, 0x9c, 0xef,
+    0xa0, 0xe0, 0x3b, 0x4d, 0xae, 0x2a, 0xf5, 0xb0, 0xc8, 0xeb, 0xbb, 0x3c, 0x83, 0x53, 0x99, 0x61,
+    0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d,
+];
+const AESRCon = [
+    [ 0x01, 0x00, 0x00, 0x00 ],
+    [ 0x02, 0x00, 0x00, 0x00 ],
+    [ 0x04, 0x00, 0x00, 0x00 ],
+    [ 0x08, 0x00, 0x00, 0x00 ],
+    [ 0x10, 0x00, 0x00, 0x00 ],
+    [ 0x20, 0x00, 0x00, 0x00 ],
+    [ 0x40, 0x00, 0x00, 0x00 ],
+    [ 0x80, 0x00, 0x00, 0x00 ],
+    [ 0x1b, 0x00, 0x00, 0x00 ],
+    [ 0x36, 0x00, 0x00, 0x00 ],
+];
+const AESMix = [0x02, 0x03, 0x01, 0x01];
+const AESInvMix = [0x0e, 0x0b, 0x0d, 0x09];
+
+function AESKeyExpansion(key) {
+    let keyArr = Array.from(key);
+    keyArr = keyArr.concat(Array(4*AES.NK - keyArr.length).fill(0x01));
+    let result = AESFillState(keyArr);
+    for (let col = AES.NK; col < AES.NB * (AES.NR + 1); col++) {
+        if (col % AES.NK === 0) {
+            let tmp = [];
+            for (let row = 1; row < 4; row++) {
+                tmp.push(result[row][col - 1]);
+            }
+            tmp.push(result[0][col-1]);
+            tmp = tmp.map(item => {
+                let sboxElem = AESS[item];
+                return sboxElem;
+            });
+            for (let row = 0; row < 4; row++) {
+                let s = result[row][col - 4] ^ tmp[row] ^ AESRCon[Math.floor(col/AES.NK) - 1][row];
+                result[row].push(s);
+            }
+        } else {
+            result.forEach(row => {
+                let s = row[col - 4] ^ row[col - 1];
+                row.push(s);
+            });
+        }
+    }
+    return result;
+}
+
+function AESAddRoundKey(state, key_schedule, round) {
+    let result = [
+        Array(AES.NK).fill(0),
+        Array(AES.NK).fill(0),
+        Array(AES.NK).fill(0),
+        Array(AES.NK).fill(0),
+    ];
+    for (let col = 0; col < AES.NK; col++) {
+        let s0 = state[0][col] ^ key_schedule[0][AES.NB * round + col];
+        let s1 = state[1][col] ^ key_schedule[1][AES.NB * round + col];
+        let s2 = state[2][col] ^ key_schedule[2][AES.NB * round + col];
+        let s3 = state[3][col] ^ key_schedule[3][AES.NB * round + col];
+        result[0][col] = s0;
+        result[1][col] = s1;
+        result[2][col] = s2;
+        result[3][col] = s3;
+    }
+    return result;
+}
+
+function AESSubBytes(state, sbox) {
+    return state.map(line => {
+        return line.map(item => {
+            return sbox[item % 256];
+        });
+    });
+}
+
+function AESLeftShift(line, count) {
+    let result = line.slice(count).concat(line.slice(0, count));
+    return result;
+}
+
+function AESRightShift(line, count) {
+    let result = line.slice(line.length - count).concat(line.slice(0, line.length - count));
+    return result;
+}
+
+function AESShiftRows(state) {
+    return state.map((line, i) => AESLeftShift(line, i));
+}
+
+function AESInvShiftRows(state) {
+    return state.map((line, i) => AESRightShift(line, i));
+}
+
+function AESGfMul(left, right) {
+    let result = 0;
+    let hi_bit;
+    for (let i = 0; i < 8; i++) {
+        if ((right & 1) !== 0) {
+            result ^= left;
+        }
+        hi_bit = left & 0x80;
+        left <<= 1;
+        if (hi_bit !== 0) {
+            left ^= 0x1b;
+        }
+        right >>= 1;
+    }
+    return result;
+}
+
+function AESMix_columns(state, coef) {
+    return Array(4).fill().map((_, i) => Array(AES.NB).fill().map((_, j) => {
+        let s = 0;
+        for (let k = 0; k < AESRightShift(coef, i).length; k++) {
+            s ^= AESGfMul(state[k][j], AESRightShift(coef, i)[k]);
+        }
+        return s;
+    }));
+}
+
+function AESFillState(input) {
+    return Array(4).fill().map((_, r) => Array(AES.NB).fill().map((_, c) => input[r + 4 * c]));
+}
+
+function AESFillResult(state) {
+    let result = [];
+    for (let r = 0; r < 4; r++) {
+        result.push(...state.map((line) => line[r]));
+    }
+    return result;
+}
+
+function AESEnc(input, key_schedule) {
+    let state = AESFillState(input);
+    state = AESAddRoundKey(state, key_schedule, 0);
+    for (let rnd = 1; rnd < AES.NR; rnd++) {
+        // console.log(bytesToHex(state[0]), bytesToHex(state[1]), bytesToHex(state[2]), bytesToHex(state[3]))
+
+        state = AESSubBytes(state, AESS);
+        // console.log(bytesToHex(state[0]), bytesToHex(state[1]), bytesToHex(state[2]), bytesToHex(state[3]))
+
+        state = AESShiftRows(state);
+        // console.log(bytesToHex(state[0]), bytesToHex(state[1]), bytesToHex(state[2]), bytesToHex(state[3]))
+
+        state = AESMix_columns(state, AESMix);
+        // console.log(bytesToHex(state[0]), bytesToHex(state[1]), bytesToHex(state[2]), bytesToHex(state[3]))
+
+        state = AESAddRoundKey(state, key_schedule, rnd);
+        // console.log(bytesToHex(state[0]), bytesToHex(state[1]), bytesToHex(state[2]), bytesToHex(state[3]))
+    }
+    state = AESSubBytes(state, AESS);
+    state = AESShiftRows(state);
+    state = AESAddRoundKey(state, key_schedule, AES.NR);
+    return AESFillResult(state);
+}
+
+function AESDec(input, key_schedule) {
+    let state = AESFillState(input);
+    state = AESAddRoundKey(state, key_schedule, AES.NR);
+    for (let rnd = AES.NR - 1; rnd >= 1; rnd--) {
+        state = AESInvShiftRows(state);
+        state = AESSubBytes(state, AESSReverse);
+        state = AESAddRoundKey(state, key_schedule, rnd);
+        state = AESMix_columns(state, AESInvMix);
+    }
+    state = AESInvShiftRows(state);
+    state = AESSubBytes(state, AESSReverse);
+    state = AESAddRoundKey(state, key_schedule, 0);
+    return AESFillResult(state);
+}
+
+// 2b7e151628aed2a6abf7158809cf4f3c
+// 3243f6a8885a308d313198a2e0370734
+
+// 3925841d02dc09fbdc118597196a0b32
+function AESEncrypt(phrase, key) {
+    // Фраза это текст
+    // Ключ это хекс
+    phrase = new TextEncoder().encode(phrase);
+    key = hexToBytes(key);
+    key = AESKeyExpansion(key);
+    // Фраза байтовый массив
+    // Ключ байтовый массив расширенный, много массивов
+    let newPhrase = ""
+    let phraseLen = phrase.length;
+    for (let k = 0; k < phraseLen; k += 16) {
+        let crypt_phrase = phrase.slice(k, k + 16);
+        let temp = bytesToHex(AESEnc(crypt_phrase, key));
+        newPhrase += temp;
+    }
+    return newPhrase;
+}
+
+function AESDecrypt(phrase, key) {
+    // Фраза хекс
+    // Ключ хекс
+    phrase = hexToBytes(phrase);
+    key = hexToBytes(key);
+    key = AESKeyExpansion(key);
+    let newPhrase = ""
+    let phraseLen = phrase.length;
+    for (let k = 0; k < phraseLen; k += 16) {
+        let crypt_phrase = phrase.slice(k, k + 16);
+        let temp = bytesToHex(AESDec(crypt_phrase, key));
+        newPhrase += temp;
+    }
+
+    newPhrase = hexToBytes(newPhrase);
+    newPhrase = new TextDecoder().decode(newPhrase);
+    return newPhrase;
+}
+
+function AESPrepairPhrase(phrase, key, cryptType) {
+    if (cryptType) {
+        phrase = markToChar(phrase).toLocaleLowerCase();
+
+        let phraseLen = phrase.length;
+        if (phrase.length % 8 != 0) {
+            for (let i = 0; i < 8 - (phraseLen % 8); i++) {
+                phrase += 'ф';
+            }
+        }
+        let newPhrase = ""
+        // console.log(phrase);
+        newPhrase = AESEncrypt(phrase, key);
+        return newPhrase;
+    } else {
+        let newPhrase = "";
+        newPhrase = AESDecrypt(phrase, key);
+        while (newPhrase[newPhrase.length - 1] == "ф") {
+            newPhrase = newPhrase.substring(0, newPhrase.length - 1);
+        }
+
+        newPhrase = charToMark(newPhrase);
+        return newPhrase;
+    }
+}
+
+function fillAesEn() {
+    let text = document.querySelector('#aesEnArea').value;
+    let key = document.querySelector("#aesEnKey").value;
+    let newText = "";
+
+    if (spaceTypes.aesSpace) {
+        if (key.length != 32) {
+            newText = "Неправильная длина ключа";
+        } else {
+            newText = spaceWithStart(text);
+            newText = AESPrepairPhrase(newText, key, true);
+        }
+    } else {
+        // newText = spaceWithout(text);
+        // newText = magmaEncrypt(text, key);
+        let newKeys = AESKeyExpansion(hexToBytes(key));
+        newText = hexToBytes(text);
+        newText = bytesToHex(AESEnc(newText, newKeys));
+    }
+    
+    document.getElementById('aesAfterEn').value = newText;
+}
+
+function fillAesDe() {
+    let text = document.querySelector('#aesDeArea').value;
+    let key = document.querySelector("#aesDeKey").value;
+    let newText = ""
+
+    if (spaceTypes.aesSpace) {
+        if (key.length != 32) {
+            newText = "Неправильная длина ключа";
+        } else {
+            newText = AESPrepairPhrase(text, key, false);
+            newText = spaceWithEnd(newText);
+        }
+    } else {
+        // newText = magmaDecrypt(text, key);
+        let newKeys = AESKeyExpansion(hexToBytes(key));
+        newText = hexToBytes(text);
+        newText = bytesToHex(AESDec(newText, newKeys));
+    }
+
+    document.getElementById('aesAfterDe').value = newText;
+}
+
+
+//
+// Кузнечик
+//
+const S = [
+    0xFC, 0xEE, 0xDD, 0x11, 0xCF, 0x6E, 0x31, 0x16, 0xFB, 0xC4, 0xFA, 0xDA, 0x23, 0xC5, 0x04, 0x4D,
+    0xE9, 0x77, 0xF0, 0xDB, 0x93, 0x2E, 0x99, 0xBA, 0x17, 0x36, 0xF1, 0xBB, 0x14, 0xCD, 0x5F, 0xC1,
+    0xF9, 0x18, 0x65, 0x5A, 0xE2, 0x5C, 0xEF, 0x21, 0x81, 0x1C, 0x3C, 0x42, 0x8B, 0x01, 0x8E, 0x4F,
+    0x05, 0x84, 0x02, 0xAE, 0xE3, 0x6A, 0x8F, 0xA0, 0x06, 0x0B, 0xED, 0x98, 0x7F, 0xD4, 0xD3, 0x1F,
+    0xEB, 0x34, 0x2C, 0x51, 0xEA, 0xC8, 0x48, 0xAB, 0xF2, 0x2A, 0x68, 0xA2, 0xFD, 0x3A, 0xCE, 0xCC,
+    0xB5, 0x70, 0x0E, 0x56, 0x08, 0x0C, 0x76, 0x12, 0xBF, 0x72, 0x13, 0x47, 0x9C, 0xB7, 0x5D, 0x87,
+    0x15, 0xA1, 0x96, 0x29, 0x10, 0x7B, 0x9A, 0xC7, 0xF3, 0x91, 0x78, 0x6F, 0x9D, 0x9E, 0xB2, 0xB1,
+    0x32, 0x75, 0x19, 0x3D, 0xFF, 0x35, 0x8A, 0x7E, 0x6D, 0x54, 0xC6, 0x80, 0xC3, 0xBD, 0x0D, 0x57,
+    0xDF, 0xF5, 0x24, 0xA9, 0x3E, 0xA8, 0x43, 0xC9, 0xD7, 0x79, 0xD6, 0xF6, 0x7C, 0x22, 0xB9, 0x03,
+    0xE0, 0x0F, 0xEC, 0xDE, 0x7A, 0x94, 0xB0, 0xBC, 0xDC, 0xE8, 0x28, 0x50, 0x4E, 0x33, 0x0A, 0x4A,
+    0xA7, 0x97, 0x60, 0x73, 0x1E, 0x00, 0x62, 0x44, 0x1A, 0xB8, 0x38, 0x82, 0x64, 0x9F, 0x26, 0x41,
+    0xAD, 0x45, 0x46, 0x92, 0x27, 0x5E, 0x55, 0x2F, 0x8C, 0xA3, 0xA5, 0x7D, 0x69, 0xD5, 0x95, 0x3B,
+    0x07, 0x58, 0xB3, 0x40, 0x86, 0xAC, 0x1D, 0xF7, 0x30, 0x37, 0x6B, 0xE4, 0x88, 0xD9, 0xE7, 0x89,
+    0xE1, 0x1B, 0x83, 0x49, 0x4C, 0x3F, 0xF8, 0xFE, 0x8D, 0x53, 0xAA, 0x90, 0xCA, 0xD8, 0x85, 0x61,
+    0x20, 0x71, 0x67, 0xA4, 0x2D, 0x2B, 0x09, 0x5B, 0xCB, 0x9B, 0x25, 0xD0, 0xBE, 0xE5, 0x6C, 0x52,
+    0x59, 0xA6, 0x74, 0xD2, 0xE6, 0xF4, 0xB4, 0xC0, 0xD1, 0x66, 0xAF, 0xC2, 0x39, 0x4B, 0x63, 0xB6
+];
+
+const S_REVERSE = [
+    0xA5, 0x2D, 0x32, 0x8F, 0x0E, 0x30, 0x38, 0xC0, 0x54, 0xE6, 0x9E, 0x39, 0x55, 0x7E, 0x52, 0x91,
+    0x64, 0x03, 0x57, 0x5A, 0x1C, 0x60, 0x07, 0x18, 0x21, 0x72, 0xA8, 0xD1, 0x29, 0xC6, 0xA4, 0x3F,
+    0xE0, 0x27, 0x8D, 0x0C, 0x82, 0xEA, 0xAE, 0xB4, 0x9A, 0x63, 0x49, 0xE5, 0x42, 0xE4, 0x15, 0xB7,
+    0xC8, 0x06, 0x70, 0x9D, 0x41, 0x75, 0x19, 0xC9, 0xAA, 0xFC, 0x4D, 0xBF, 0x2A, 0x73, 0x84, 0xD5,
+    0xC3, 0xAF, 0x2B, 0x86, 0xA7, 0xB1, 0xB2, 0x5B, 0x46, 0xD3, 0x9F, 0xFD, 0xD4, 0x0F, 0x9C, 0x2F,
+    0x9B, 0x43, 0xEF, 0xD9, 0x79, 0xB6, 0x53, 0x7F, 0xC1, 0xF0, 0x23, 0xE7, 0x25, 0x5E, 0xB5, 0x1E,
+    0xA2, 0xDF, 0xA6, 0xFE, 0xAC, 0x22, 0xF9, 0xE2, 0x4A, 0xBC, 0x35, 0xCA, 0xEE, 0x78, 0x05, 0x6B,
+    0x51, 0xE1, 0x59, 0xA3, 0xF2, 0x71, 0x56, 0x11, 0x6A, 0x89, 0x94, 0x65, 0x8C, 0xBB, 0x77, 0x3C,
+    0x7B, 0x28, 0xAB, 0xD2, 0x31, 0xDE, 0xC4, 0x5F, 0xCC, 0xCF, 0x76, 0x2C, 0xB8, 0xD8, 0x2E, 0x36,
+    0xDB, 0x69, 0xB3, 0x14, 0x95, 0xBE, 0x62, 0xA1, 0x3B, 0x16, 0x66, 0xE9, 0x5C, 0x6C, 0x6D, 0xAD,
+    0x37, 0x61, 0x4B, 0xB9, 0xE3, 0xBA, 0xF1, 0xA0, 0x85, 0x83, 0xDA, 0x47, 0xC5, 0xB0, 0x33, 0xFA,
+    0x96, 0x6F, 0x6E, 0xC2, 0xF6, 0x50, 0xFF, 0x5D, 0xA9, 0x8E, 0x17, 0x1B, 0x97, 0x7D, 0xEC, 0x58,
+    0xF7, 0x1F, 0xFB, 0x7C, 0x09, 0x0D, 0x7A, 0x67, 0x45, 0x87, 0xDC, 0xE8, 0x4F, 0x1D, 0x4E, 0x04,
+    0xEB, 0xF8, 0xF3, 0x3E, 0x3D, 0xBD, 0x8A, 0x88, 0xDD, 0xCD, 0x0B, 0x13, 0x98, 0x02, 0x93, 0x80,
+    0x90, 0xD0, 0x24, 0x34, 0xCB, 0xED, 0xF4, 0xCE, 0x99, 0x10, 0x44, 0x40, 0x92, 0x3A, 0x01, 0x26,
+    0x12, 0x1A, 0x48, 0x68, 0xF5, 0x81, 0x8B, 0xC7, 0xD6, 0x20, 0x0A, 0x08, 0x00, 0x4C, 0xD7, 0x74
+];
+
+const L_VEC = [
+    148, 32, 133, 16, 194, 192, 1, 251, 1, 192, 194, 16, 133, 32, 148, 1
+];
+
+const C = [
+    [0x6e, 0xa2, 0x76, 0x72, 0x6c, 0x48, 0x7a, 0xb8, 0x5d, 0x27, 0xbd, 0x10, 0xdd, 0x84, 0x94, 0x01],
+    [0xdc, 0x87, 0xec, 0xe4, 0xd8, 0x90, 0xf4, 0xb3, 0xba, 0x4e, 0xb9, 0x20, 0x79, 0xcb, 0xeb, 0x02],
+    [0xb2, 0x25, 0x9a, 0x96, 0xb4, 0xd8, 0x8e, 0x0b, 0xe7, 0x69, 0x04, 0x30, 0xa4, 0x4f, 0x7f, 0x03],
+    [0x7b, 0xcd, 0x1b, 0x0b, 0x73, 0xe3, 0x2b, 0xa5, 0xb7, 0x9c, 0xb1, 0x40, 0xf2, 0x55, 0x15, 0x04],
+    [0x15, 0x6f, 0x6d, 0x79, 0x1f, 0xab, 0x51, 0x1d, 0xea, 0xbb, 0x0c, 0x50, 0x2f, 0xd1, 0x81, 0x05],
+    [0xa7, 0x4a, 0xf7, 0xef, 0xab, 0x73, 0xdf, 0x16, 0x0d, 0xd2, 0x08, 0x60, 0x8b, 0x9e, 0xfe, 0x06],
+    [0xc9, 0xe8, 0x81, 0x9d, 0xc7, 0x3b, 0xa5, 0xae, 0x50, 0xf5, 0xb5, 0x70, 0x56, 0x1a, 0x6a, 0x07],
+    [0xf6, 0x59, 0x36, 0x16, 0xe6, 0x05, 0x56, 0x89, 0xad, 0xfb, 0xa1, 0x80, 0x27, 0xaa, 0x2a, 0x08],
+    [0x98, 0xfb, 0x40, 0x64, 0x8a, 0x4d, 0x2c, 0x31, 0xf0, 0xdc, 0x1c, 0x90, 0xfa, 0x2e, 0xbe, 0x09],
+    [0x2a, 0xde, 0xda, 0xf2, 0x3e, 0x95, 0xa2, 0x3a, 0x17, 0xb5, 0x18, 0xa0, 0x5e, 0x61, 0xc1, 0x0a],
+    [0x44, 0x7c, 0xac, 0x80, 0x52, 0xdd, 0xd8, 0x82, 0x4a, 0x92, 0xa5, 0xb0, 0x83, 0xe5, 0x55, 0x0b],
+    [0x8d, 0x94, 0x2d, 0x1d, 0x95, 0xe6, 0x7d, 0x2c, 0x1a, 0x67, 0x10, 0xc0, 0xd5, 0xff, 0x3f, 0x0c],
+    [0xe3, 0x36, 0x5b, 0x6f, 0xf9, 0xae, 0x07, 0x94, 0x47, 0x40, 0xad, 0xd0, 0x08, 0x7b, 0xab, 0x0d],
+    [0x51, 0x13, 0xc1, 0xf9, 0x4d, 0x76, 0x89, 0x9f, 0xa0, 0x29, 0xa9, 0xe0, 0xac, 0x34, 0xd4, 0x0e],
+    [0x3f, 0xb1, 0xb7, 0x8b, 0x21, 0x3e, 0xf3, 0x27, 0xfd, 0x0e, 0x14, 0xf0, 0x71, 0xb0, 0x40, 0x0f],
+    [0x2f, 0xb2, 0x6c, 0x2c, 0x0f, 0x0a, 0xac, 0xd1, 0x99, 0x35, 0x81, 0xc3, 0x4e, 0x97, 0x54, 0x10],
+    [0x41, 0x10, 0x1a, 0x5e, 0x63, 0x42, 0xd6, 0x69, 0xc4, 0x12, 0x3c, 0xd3, 0x93, 0x13, 0xc0, 0x11],
+    [0xf3, 0x35, 0x80, 0xc8, 0xd7, 0x9a, 0x58, 0x62, 0x23, 0x7b, 0x38, 0xe3, 0x37, 0x5c, 0xbf, 0x12],
+    [0x9d, 0x97, 0xf6, 0xba, 0xbb, 0xd2, 0x22, 0xda, 0x7e, 0x5c, 0x85, 0xf3, 0xea, 0xd8, 0x2b, 0x13],
+    [0x54, 0x7f, 0x77, 0x27, 0x7c, 0xe9, 0x87, 0x74, 0x2e, 0xa9, 0x30, 0x83, 0xbc, 0xc2, 0x41, 0x14],
+    [0x3a, 0xdd, 0x01, 0x55, 0x10, 0xa1, 0xfd, 0xcc, 0x73, 0x8e, 0x8d, 0x93, 0x61, 0x46, 0xd5, 0x15],
+    [0x88, 0xf8, 0x9b, 0xc3, 0xa4, 0x79, 0x73, 0xc7, 0x94, 0xe7, 0x89, 0xa3, 0xc5, 0x09, 0xaa, 0x16],
+    [0xe6, 0x5a, 0xed, 0xb1, 0xc8, 0x31, 0x09, 0x7f, 0xc9, 0xc0, 0x34, 0xb3, 0x18, 0x8d, 0x3e, 0x17],
+    [0xd9, 0xeb, 0x5a, 0x3a, 0xe9, 0x0f, 0xfa, 0x58, 0x34, 0xce, 0x20, 0x43, 0x69, 0x3d, 0x7e, 0x18],
+    [0xb7, 0x49, 0x2c, 0x48, 0x85, 0x47, 0x80, 0xe0, 0x69, 0xe9, 0x9d, 0x53, 0xb4, 0xb9, 0xea, 0x19],
+    [0x05, 0x6c, 0xb6, 0xde, 0x31, 0x9f, 0x0e, 0xeb, 0x8e, 0x80, 0x99, 0x63, 0x10, 0xf6, 0x95, 0x1a],
+    [0x6b, 0xce, 0xc0, 0xac, 0x5d, 0xd7, 0x74, 0x53, 0xd3, 0xa7, 0x24, 0x73, 0xcd, 0x72, 0x01, 0x1b],
+    [0xa2, 0x26, 0x41, 0x31, 0x9a, 0xec, 0xd1, 0xfd, 0x83, 0x52, 0x91, 0x03, 0x9b, 0x68, 0x6b, 0x1c],
+    [0xcc, 0x84, 0x37, 0x43, 0xf6, 0xa4, 0xab, 0x45, 0xde, 0x75, 0x2c, 0x13, 0x46, 0xec, 0xff, 0x1d],
+    [0x7e, 0xa1, 0xad, 0xd5, 0x42, 0x7c, 0x25, 0x4e, 0x39, 0x1c, 0x28, 0x23, 0xe2, 0xa3, 0x80, 0x1e],
+    [0x10, 0x03, 0xdb, 0xa7, 0x2e, 0x34, 0x5f, 0xf6, 0x64, 0x3b, 0x95, 0x33, 0x3f, 0x27, 0x14, 0x1f],
+    [0x5e, 0xa7, 0xd8, 0x58, 0x1e, 0x14, 0x9b, 0x61, 0xf1, 0x6a, 0xc1, 0x45, 0x9c, 0xed, 0xa8, 0x20],
+];
+
+function KuzX(left, right) {
+    return left.map((elem, index) => elem ^ right[index]);
+}
+
+function KuzS(part) {
+    return part.map(elem => S[elem]);
+}
+
+function KuzSReverse(part) {
+    return part.map(elem => S_REVERSE[elem]);
+}
+
+function KuzGfMul(left, right) {
+    let result = 0;
+    let hi_bit;
+    for (let i = 0; i < 8; i++) {
+        if (right & 1) {
+            result ^= left;
+        }
+        hi_bit = left & 0x80;
+        left <<= 1;
+        if (hi_bit) {
+            left ^= 0xc3;
+        }
+        right >>= 1;
+    }
+    return result;
+}
+
+function KuzR(data) {
+    let result = new Uint8Array(data.length);
+    let a_15 = 0;
+    for (let i = 0; i < data.length; i++) {
+        a_15 ^= KuzGfMul(data[i], L_VEC[i]);
+    }
+    result.set([a_15], 0);
+    result.set(data.slice(0, data.length - 1), 1);
+    return result;
+}
+
+function KuzRReverse(data) {
+    let result = new Uint8Array(data.length);
+    let copy = new Uint8Array(data.length);
+    result.set(data.slice(1), 0);
+    copy.set(data.slice(1), 0);
+    copy.set([data[0]], copy.length - 1)
+
+    let a_0 = 0;
+    for (let i = 0; i < copy.length; i++) {
+        a_0 ^= KuzGfMul(copy[i], L_VEC[i]);
+    }
+    
+    result.set([a_0], result.length - 1);
+    return result;
+}
+
+function KuzL(data, func) {
+    let result = data.slice();
+    for (let i = 0; i < 16; i++) {
+        result = KuzR(result);
+    }
+    return result;
+}
+
+function KuzLReverse(data) {
+    let result = data.slice();
+    for (let i = 0; i < 16; i++) {
+        result = KuzRReverse(result);
+    }
+    return result;
+}
+
+function KuzF(left, right, iter_c) {
+    return [KuzX(KuzL(KuzS(KuzX(left, iter_c))), right), left.slice()];
+}
+
+function KuzExpandKey(key) {
+    let result = [
+        key.slice(0, 16),
+        key.slice(16)
+    ];
+    for (let i = 0; i < 4; i++) {
+        let [p1, p2] = [result[i * 2].slice(), result[i * 2 + 1].slice()];
+        for (let j = 0; j < 8; j++) {
+            [p1, p2] = KuzF(p1, p2, C[i * 8 + j]);
+        }
+        result.push(p1);
+        result.push(p2);
+    }
+    return result;
+}
+
+function KuzEnc(part, keys) {
+    let result = part.slice();
+    for (let key of keys.slice(0, keys.length - 1)) {
+        result = KuzL(KuzS(KuzX(result, key)));
+    }
+    result = KuzX(result, keys[keys.length - 1]);
+    return result;
+}
+
+function KuzDec(part, keys) {
+    let result = part.slice();
+    for (let key of keys.slice(1).reverse()) {
+        result = KuzSReverse(KuzLReverse(KuzX(result, key)));
+    }
+    result = KuzX(result, keys[0]);
+    return result;
+}
+
+function KuzProto(phrase, key, encryption_func) {
+    let phrase_bytes = hexToBytes(phrase, 16);
+    let key_bytes = hexToBytes(key, 32);
+    let keys = KuzExpandKey(key_bytes);
+    let result = [];
+    for (let i = 0; i < phrase_bytes.length; i += 16) {
+        result.push(...encryption_func(phrase_bytes.slice(i, i + 16), keys));
+    }
+    return bytesToHex(result);
+}
+
+function KuzEncrypt(phrase, key) {
+    return KuzProto(phrase, key, KuzEnc);
+}
+
+function KuzDecrypt(phrase, key) {
+    return KuzProto(phrase, key, KuzDec);
+}
+
+function KuzPrepairPhrase(phrase, key, cryptType) {
+    if (cryptType) {
+        phrase = markToChar(phrase).toLocaleLowerCase();
+
+        let phraseLen = phrase.length;
+        if (phrase.length % 8 != 0) {
+            for (let i = 0; i < 8 - (phraseLen % 8); i++) {
+                phrase += 'ф';
+            }
+        }
+        phrase = new TextEncoder().encode(phrase);
+        phrase = bytesToHex(phrase);
+
+        let newPhrase = ""
+        phraseLen = phrase.length;
+        for (let k = 0; k < phraseLen; k += 32) {
+            let crypt_phrase = phrase.slice(k, k + 32);
+            let temp = KuzEncrypt(crypt_phrase, key);
+            newPhrase += temp;
+        }
+        return newPhrase;
+    } else {
+        let newPhrase = "";
+        let phraseLen = phrase.length;
+        for (let k = 0; k < phraseLen; k += 32) {
+            let crypt_phrase = phrase.slice(k, k + 32);
+            let temp = KuzDecrypt(crypt_phrase, key);
+            newPhrase += temp;
+        }
+
+        newPhrase = hexToBytes(newPhrase);
+        newPhrase = new TextDecoder().decode(newPhrase);
+        while (newPhrase[newPhrase.length - 1] == "ф") {
+            newPhrase = newPhrase.substring(0, newPhrase.length - 1);
+        }
+
+        newPhrase = charToMark(newPhrase);
+        return newPhrase;
+    }
+}
+
+function fillKuzEn() {
+    let text = document.querySelector('#kuzEnArea').value;
+    let key = document.querySelector("#kuzEnKey").value;
+    let newText = "";
+
+    if (spaceTypes.kuzSpace) {
+        if (key.length != 64) {
+            newText = "Неправильная длина ключа";
+        } else {
+            newText = spaceWithStart(text);
+            newText = KuzPrepairPhrase(newText, key, true);
+        }
+    } else {
+        newText = KuzEncrypt(text, key);
+    }
+    
+    document.getElementById('kuzAfterEn').value = newText;
+}
+
+function fillKuzDe() {
+    let text = document.querySelector('#kuzDeArea').value;
+    let key = document.querySelector("#kuzDeKey").value;
+    let newText = ""
+
+    if (spaceTypes.kuzSpace) {
+        if (key.length != 64) {
+            newText = "Неправильная длина ключа";
+        } else {
+            newText = KuzPrepairPhrase(text, key, false);
+            newText = spaceWithEnd(newText);
+        }
+    } else {
+        newText = KuzDecrypt(text, key);
+    }
+
+    document.getElementById('kuzAfterDe').value = newText;
+}
+
+//
+// RSA
+//
+function RsaPowMod(number, power, modula) {
+    let result = number;
+    for (let i = 1; i < power; i++) {
+        result *= number;
+        result %= modula;
+    }
+    return result;
+}
+
+function RsaGetNumbers(phrase, len) {
+    let result = []
+    for (let i = 0; i < phrase.length; i += len) {
+        result.push(Number(phrase.slice(i, i + len)));
+    }
+    return result
+}
+
+function RsaToString(number, len) {
+    return number.toString().padStart(len, '0');
+}
+
+function RsaProto(letters, power, modula) {
+    let result = []
+    for (let i = 0; i < letters.length; i++){
+        result.push(RsaPowMod(letters[i], power, modula));
+    }
+    return result;
+}
+
+function RsaPrime(n) { 
+    let result = []; 
+    for (let i = 2; i <= Math.pow(n, 0.5); i++) { 
+        if (n % i == 0) { 
+            result.push(i); 
+            result.push(n / i); 
+        } 
+    } 
+    return result; 
+} 
+
+function RsaCoprimes(num1, num2) {
+    let smaller = num1 > num2 ? num1 : num2;
+    for(let ind = 2; ind < smaller; ind++){
+       let condition1 = num1 % ind == 0;
+       let condition2 = num2 % ind == 0;
+       if(condition1 && condition2){
+          return false;
+       };
+    };
+    return true;
+};
+
+function RsaEncrypt(phrase, n, e) {
+    let alphabet = 'абвгдежзийклмнопрстуфхцчшщъыьэюя'
+    if (e >= n) throw new Error("E должно быть меньше либо равно n");
+    let result = '';
+    const len = n.toString().length;
+    RsaProto(Array.from(phrase).map(letter => alphabet.indexOf(letter) + 1), e, n
+        ).forEach(res => result += RsaToString(res, len));
+    return result;
+}
+
+function RsaValidate(phrase, n, d) {
+    if (d >= n) throw new Error("D должно быть меньше либо равно n");
+    const len = n.toString().length;
+    if (phrase.length % len !== 0) throw new Error("Invalid text length");
+    const result = RsaGetNumbers(phrase, len);
+    
+    result.forEach(letter => {
+        if (letter >= n) throw new Error("Invalid letter in text");
+    });
+    return result;
+}
+
+function RsaDecrypt(phrase, n, d) {
+    const alphabet = 'абвгдежзийклмнопрстуфхцчшщъыьэюя';
+    let result = '';
+    try {
+        phrase = RsaValidate(phrase, n, d);
+        const buffer = RsaProto(phrase, d, n);
+        for (let num of buffer) {
+            result += alphabet[num - 1];
+        }
+        return result;
+    } catch (error) {
+        return error;
+    }
+}
+
+function RsaPrepairPhrase(text, n, e, typecr) {
+    if (typecr) {
+        let newText = markToChar(text).toLocaleLowerCase();
+        let ntest = RsaPrime(n);
+        if (ntest.length != 2) {
+            return 'n - должно быть произведением двух простых чисел';
+        }
+
+        let eiler = (ntest[0] - 1) * (ntest[1] - 1);
+        if (!RsaCoprimes(eiler, e)) {
+            return 'e - дожно быть взаимнопростым с функцией эйлера от n и меньше ее';
+        }
+
+        return RsaEncrypt(newText, n, e);
+
+    } else {
+        let ntest = RsaPrime(n);
+        if (ntest.length != 2) {
+            return 'n - должно быть произведением двух простых чисел';
+        }
+
+        let eiler = (ntest[0] - 1) * (ntest[1] - 1);
+        if (RsaCoprimes(eiler, e) == false) {
+            return 'd - дожно быть взаимнопростым с функцией эйлера от n и меньше ее';
+        }
+
+        let newText = charToMark(RsaDecrypt(text, n, e));
+        return newText;
+    }
+}
+
+function fillRsaEn() {
+    let text = document.querySelector('#rsaEnArea').value;
+    let enN = Number(document.querySelector('#rsaEnN').value); 
+    let enE = Number(document.querySelector('#rsaEnE').value);
+    let newText = "";
+    if (spaceTypes.rsaSpace) {
+        newText = spaceWithStart(text);
+        newText = RsaPrepairPhrase(newText, enN, enE, true);
+    }else {
+        newText = spaceWithout(text);
+        newText = RsaPrepairPhrase(newText, enN, enE, true);
+    }
+    document.getElementById('rsaAfterEn').value = newText;
+};
+
+function fillRsaDe() {
+    let text = document.querySelector('#rsaDeArea').value;
+    let deN = Number(document.querySelector('#rsaDeN').value); 
+    let deD = Number(document.querySelector('#rsaDeD').value);
+    let newText = "";
+    if (spaceTypes.rsaSpace) {
+        newText = RsaPrepairPhrase(text, deN, deD, false);
+        // console.log(newText)
+        newText = spaceWithEnd(newText);
+    }else {
+        newText = spaceWithout(text);
+        newText = RsaPrepairPhrase(newText, deN, deD, false);
+    }
+    document.getElementById('rsaAfterDe').value = newText;
+};
+
+//
+// Elgamal
+//
+function ElgGcd(a, b) { 
+    if (a == 0) 
+        return b; 
+    return ElgGcd(b % a, a); 
+} 
+
+class ElgGen {
+    constructor(phi, count, elems) {
+        this.phi = phi;
+        this.count = count;
+        this.elems = elems ? [...elems] : null;
+        this.index = 0;
+    }
+
+    next() {
+        if (this.count > 0) {
+            let elem;
+            if (this.elems) {
+                elem = this.elems[this.index];
+                this.index = (this.index + 1) % this.elems.length;
+            } else {
+                do {
+                    elem = Math.floor(Math.random() * (this.phi - 2)) + 2;
+                } while (ElgGcd(this.phi, elem) != 1);
+            }
+            this.count -= 1;
+            return elem;
+        } else {
+            return null;
+        }
+    }
+}
+function ElgPrime(n) { 
+    let result = []; 
+    for (let i = 2; i <= Math.pow(n, 0.5); i++) { 
+        if (n % i == 0) {
+            result.push(i); 
+            result.push(n / i); 
+        } 
+    } 
+    return result; 
+}
+
+function ElgCoprimes(num1, num2) {
+    let smaller = num1 > num2 ? num1 : num2;
+    for(let ind = 2; ind < smaller; ind++){
+       let condition1 = num1 % ind == 0;
+       let condition2 = num2 % ind == 0;
+       if(condition1 && condition2){
+          return false;
+       };
+    };
+    return true;
+};
+
+function ElgGetNumbers(phrase, len) {
+    let result = []
+    for (let i = 0; i < phrase.length; i += len) {
+        result.push(Number(phrase.slice(i, i + len)));
+    }
+    return result
+}
+
+function ElgPowMod(number, power, modul) {
+    let result = number;
+    for (let i = 1; i < power; i++) {
+        result *= number;
+        result %= modul;
+    }
+    return result;
+}
+
+function ElgToString(number, len) {
+    return number.toString().padStart(len, '0');
+}
+
+function ElgValidate(p, g) {
+    let alphabet = 'абвгдежзийклмнопрстуфхцчшщъыьэюя';
+    let alphabetLength = alphabet.length;
+    if (p <= alphabetLength) {
+        throw new Error("InvalidIndex");
+    }
+    if (g >= p || g === 1) {
+        throw new Error("InvalidIndex");
+    }
+}
+
+function ElgValidateDec(phrase, x, p) {
+    let alphabet = "0123456789";
+    let len = p.toString().length;
+    if (x >= p || x === 1) {
+        throw new Error("x должно быть меньше p");
+    }
+    if (phrase.length % (len * 2) !== 0) {
+        throw new Error("InvalidTextError");
+    }
+    let result = ElgGetNumbers(phrase, len)
+        .map((_, i, arr) => i % 2 === 0 ? [arr[i], arr[i + 1]] : null)
+        .filter(pair => pair);
+    for (const [ai, bi] of result) {
+        if (ai >= p || bi >= p) {
+            throw new Error("InvalidTextError");
+        }
+    }
+    return result;
+}
+
+function ElgCreateKeys(p, q) {
+    let result = []
+    let eiler = p - 1;
+    while (result.length != q) {
+        let rand = Math.floor(Math.random() * (eiler - 2) + 2);
+        if (ElgCoprimes(eiler, rand)) {
+            result.push(rand)
+        }
+    }
+
+    return result
+}
+
+// длина текста - 2496, p = 2579, g = 71, y = 1200, x = 23
+function ElgEncrypt(phrase, p, g, y, r) {
+    let alphabet = 'абвгдежзийклмнопрстуфхцчшщъыьэюя';
+    ElgValidate(p, g);
+    let phi = p - 1;
+    let len = p.toString().length;
+    let gen = new ElgGen(phi, phrase.length, r);
+    let result = '';
+    for (const mi of phrase) {
+        const ki = gen.next();
+        const ai = ElgPowMod(g, ki, p);
+        const bi = (ElgPowMod(y, ki, p) * (alphabet.indexOf(mi) + 1)) % p;
+        result += ElgToString(ai, len) + ElgToString(bi, len);
+    }
+    return result;
+}
+
+function ElgDecrypt(phrase, p, x) {
+    let alphabet = 'абвгдежзийклмнопрстуфхцчшщъыьэюя';
+    let validatedPhrase = ElgValidateDec(phrase, x, p);
+    let buffer = validatedPhrase.map(([ai, bi]) => {
+        return (bi * ElgPowMod(ElgPowMod(ai, x, p), p - 2, p)) % p - 1;
+    });
+    let result = '';
+    for (const num of buffer) {
+        result += alphabet[num];
+    }
+    return result;
+}
+
+function ElgPrepairPhrase(text, p, g, y, x, typecr) {
+    if (typecr) {
+        let newText = markToChar(text).toLocaleLowerCase();
+        let lenText = newText.length;
+        let ptest = ElgPrime(p);
+
+        if (p <= 32) { //p <= lenText
+            return 'p - должно быть больше длины алфавита'
+        }
+        if (ptest.length != 0) {
+            return 'p - должно быть простым числом'
+        }
+        if (g <= 1 || g >= p) {
+            return 'g - должно быть 1 < g < p'
+        }
+        console.log(newText.length)
+        let keys = ElgCreateKeys(p, newText.length);
+        // return ElgEncrypt(newText, p, g, [3,5,7]) // Для теста на своей фразе
+        return ElgEncrypt(newText, p, g, y, keys)
+
+    } else {
+        let lenText = text.length;
+        let ptest = ElgPrime(p);
+
+        if (ptest.length != 0) {
+            return 'p - должно быть простым числом'
+        }
+        if (x <= 1 || x >= p) {
+            return 'x - должно быть 1 < x < p'
+        }
+
+        let newText = charToMark(ElgDecrypt(text, p, x));
+        return newText;
+    }
+}
+
+function fillElgEn() {
+    let text = document.querySelector('#elgEnArea').value;
+    let enP = Number(document.querySelector('#elgEnP').value); 
+    let enG = Number(document.querySelector('#elgEnG').value);
+    let enY = Number(document.querySelector('#elgEnY').value);
+    let newText = "";
+    if (spaceTypes.elgSpace) {
+        newText = spaceWithStart(text);
+        newText = ElgPrepairPhrase(newText, enP, enG, enY, 0, true);
+    }else {
+        newText = spaceWithout(text);
+        newText = ElgPrepairPhrase(newText, enP, enG, enY, 0, true);
+    }
+    document.getElementById('elgAfterEn').value = newText;
+};
+
+function fillElgDe() {
+    let text = document.querySelector('#elgDeArea').value;
+    let deP = Number(document.querySelector('#elgDeP').value); 
+    let deX = Number(document.querySelector('#elgDeX').value);
+    let newText = "";
+    if (spaceTypes.elgSpace) {
+        newText = ElgPrepairPhrase(text, deP, 0, 0, deX, false);
+        newText = spaceWithEnd(newText);
+    }else {
+        newText = spaceWithout(text);
+        newText = ElgPrepairPhrase(newText, deP, 0, 0, deX, false);
+    }
+    document.getElementById('elgAfterDe').value = newText;
+};
+
+
+//
+//
+//
+// 
 
 
 
@@ -1761,7 +3588,87 @@ window.onload = () => {
         addEventListener('click', event => {
             fillCardanoDe();
         });
-    
+    document.querySelector('#festEnBtn').
+        addEventListener('click', event => {
+            fillFestEn();
+        });
+    document.querySelector('#festDeBtn').
+        addEventListener('click', event => {
+            fillFestDe();
+        });
+    document.querySelector('#shenEnBtn').
+        addEventListener('click', event => {
+            fillShenEn();
+        });
+    document.querySelector('#shenDeBtn').
+        addEventListener('click', event => {
+            fillShenDe();
+        });
+    document.querySelector('#gamEnBtn').
+        addEventListener('click', event => {
+            fillGamEn();
+        });
+    document.querySelector('#gamDeBtn').
+        addEventListener('click', event => {
+            fillGamDe();
+        });
+    document.querySelector('#a51EnBtn').
+        addEventListener('click', event => {
+            fillA51En();
+        });
+    document.querySelector('#a51DeBtn').
+        addEventListener('click', event => {
+            fillA51De();
+        });
+    document.querySelector('#a52EnBtn').
+        addEventListener('click', event => {
+            fillA52En();
+        });
+    document.querySelector('#a52DeBtn').
+        addEventListener('click', event => {
+            fillA52De();
+        });
+    document.querySelector('#magmaEnBtn').
+        addEventListener('click', event => {
+            fillMagmaEn();
+        });
+    document.querySelector('#magmaDeBtn').
+        addEventListener('click', event => {
+            fillMagmaDe();
+        });
+    document.querySelector('#aesEnBtn').
+        addEventListener('click', event => {
+            fillAesEn();
+        });
+    document.querySelector('#aesDeBtn').
+        addEventListener('click', event => {
+            fillAesDe();
+        });
+    document.querySelector('#kuzEnBtn').
+        addEventListener('click', event => {
+            fillKuzEn();
+        });
+    document.querySelector('#kuzDeBtn').
+        addEventListener('click', event => {
+            fillKuzDe();
+        });
+    document.querySelector('#rsaEnBtn').
+        addEventListener('click', event => {
+            fillRsaEn();
+        });
+    document.querySelector('#rsaDeBtn').
+        addEventListener('click', event => {
+            fillRsaDe();
+        });
+    document.querySelector('#elgEnBtn').
+        addEventListener('click', event => {
+            fillElgEn();
+        });
+    document.querySelector('#elgDeBtn').
+        addEventListener('click', event => {
+            fillElgDe();
+        });
+
     //
     //
     
@@ -1920,6 +3827,146 @@ window.onload = () => {
         document.querySelector('#cardano').classList.remove('hidden');
         state.activeSection = document.querySelector('#cardano');
     });
+    document.querySelector('#festPage').addEventListener('click', event => {
+        if (state.activeNvBar) {
+            state.activeNvBar.classList.remove('activeNv');
+        }
+        let tempSec = event.target;
+        tempSec.classList.add("activeNv");
+        state.activeNvBar = event.target;
+
+        if (state.activeSection) {
+            state.activeSection.classList.add('hidden');
+        }
+        document.querySelector('#fest').classList.remove('hidden');
+        state.activeSection = document.querySelector('#fest');
+    });
+    document.querySelector('#shenPage').addEventListener('click', event => {
+        if (state.activeNvBar) {
+            state.activeNvBar.classList.remove('activeNv');
+        }
+        let tempSec = event.target;
+        tempSec.classList.add("activeNv");
+        state.activeNvBar = event.target;
+
+        if (state.activeSection) {
+            state.activeSection.classList.add('hidden');
+        }
+        document.querySelector('#shen').classList.remove('hidden');
+        state.activeSection = document.querySelector('#shen');
+    });
+    document.querySelector('#gamPage').addEventListener('click', event => {
+        if (state.activeNvBar) {
+            state.activeNvBar.classList.remove('activeNv');
+        }
+        let tempSec = event.target;
+        tempSec.classList.add("activeNv");
+        state.activeNvBar = event.target;
+
+        if (state.activeSection) {
+            state.activeSection.classList.add('hidden');
+        }
+        document.querySelector('#gam').classList.remove('hidden');
+        state.activeSection = document.querySelector('#gam');
+    });
+    document.querySelector('#kuzPage').addEventListener('click', event => {
+        if (state.activeNvBar) {
+            state.activeNvBar.classList.remove('activeNv');
+        }
+        let tempSec = event.target;
+        tempSec.classList.add("activeNv");
+        state.activeNvBar = event.target;
+
+        if (state.activeSection) {
+            state.activeSection.classList.add('hidden');
+        }
+        document.querySelector('#kuz').classList.remove('hidden');
+        state.activeSection = document.querySelector('#kuz');
+    });
+    document.querySelector('#a51Page').addEventListener('click', event => {
+        if (state.activeNvBar) {
+            state.activeNvBar.classList.remove('activeNv');
+        }
+        let tempSec = event.target;
+        tempSec.classList.add("activeNv");
+        state.activeNvBar = event.target;
+
+        if (state.activeSection) {
+            state.activeSection.classList.add('hidden');
+        }
+        document.querySelector('#a51').classList.remove('hidden');
+        state.activeSection = document.querySelector('#a51');
+    });
+    document.querySelector('#a52Page').addEventListener('click', event => {
+        if (state.activeNvBar) {
+            state.activeNvBar.classList.remove('activeNv');
+        }
+        let tempSec = event.target;
+        tempSec.classList.add("activeNv");
+        state.activeNvBar = event.target;
+
+        if (state.activeSection) {
+            state.activeSection.classList.add('hidden');
+        }
+        document.querySelector('#a52').classList.remove('hidden');
+        state.activeSection = document.querySelector('#a52');
+    });
+    document.querySelector('#magmaPage').addEventListener('click', event => {
+        if (state.activeNvBar) {
+            state.activeNvBar.classList.remove('activeNv');
+        }
+        let tempSec = event.target;
+        tempSec.classList.add("activeNv");
+        state.activeNvBar = event.target;
+
+        if (state.activeSection) {
+            state.activeSection.classList.add('hidden');
+        }
+        document.querySelector('#magma').classList.remove('hidden');
+        state.activeSection = document.querySelector('#magma');
+    });
+    document.querySelector('#aesPage').addEventListener('click', event => {
+        if (state.activeNvBar) {
+            state.activeNvBar.classList.remove('activeNv');
+        }
+        let tempSec = event.target;
+        tempSec.classList.add("activeNv");
+        state.activeNvBar = event.target;
+
+        if (state.activeSection) {
+            state.activeSection.classList.add('hidden');
+        }
+        document.querySelector('#aes').classList.remove('hidden');
+        state.activeSection = document.querySelector('#aes');
+    });
+    document.querySelector('#rsaPage').addEventListener('click', event => {
+        if (state.activeNvBar) {
+            state.activeNvBar.classList.remove('activeNv');
+        }
+        let tempSec = event.target;
+        tempSec.classList.add("activeNv");
+        state.activeNvBar = event.target;
+
+        if (state.activeSection) {
+            state.activeSection.classList.add('hidden');
+        }
+        document.querySelector('#rsa').classList.remove('hidden');
+        state.activeSection = document.querySelector('#rsa');
+    });
+    document.querySelector('#elgPage').addEventListener('click', event => {
+        if (state.activeNvBar) {
+            state.activeNvBar.classList.remove('activeNv');
+        }
+        let tempSec = event.target;
+        tempSec.classList.add("activeNv");
+        state.activeNvBar = event.target;
+
+        if (state.activeSection) {
+            state.activeSection.classList.add('hidden');
+        }
+        document.querySelector('#elg').classList.remove('hidden');
+        state.activeSection = document.querySelector('#elg');
+    });
 
     //
     //
@@ -1957,6 +4004,30 @@ window.onload = () => {
     });
     document.querySelector("#cardanoSpaceType").addEventListener('click', event => {
         spaceTypes.cardanoSpace = document.querySelector("#cardanoSpaceType").checked;
+    });
+    document.querySelector("#festSpaceType").addEventListener('click', event => {
+        spaceTypes.festSpace = document.querySelector("#festSpaceType").checked;
+    });
+    document.querySelector("#shenSpaceType").addEventListener('click', event => {
+        spaceTypes.shenSpace = document.querySelector("#shenSpaceType").checked;
+    });
+    document.querySelector("#gamSpaceType").addEventListener('click', event => {
+        spaceTypes.gamSpace = document.querySelector("#gamSpaceType").checked;
+    });
+    document.querySelector("#magmaSpaceType").addEventListener('click', event => {
+        spaceTypes.magmaSpace = document.querySelector("#magmaSpaceType").checked;
+    });
+    document.querySelector("#kuzSpaceType").addEventListener('click', event => {
+        spaceTypes.kuzSpace = document.querySelector("#kuzSpaceType").checked;
+    });
+    document.querySelector("#aesSpaceType").addEventListener('click', event => {
+        spaceTypes.aesSpace = document.querySelector("#aesSpaceType").checked;
+    });
+    document.querySelector("#rsaSpaceType").addEventListener('click', event => {
+        spaceTypes.rsaSpace = document.querySelector("#rsaSpaceType").checked;
+    });
+    document.querySelector("#elgSpaceType").addEventListener('click', event => {
+        spaceTypes.elgSpace = document.querySelector("#elgSpaceType").checked;
     });
     
 
