@@ -40,6 +40,8 @@ const spaceTypes = {
     kuzSpace: false,
     rsaSpace: false,
     elgSpace: false,
+    eccSpace: false,
+
 };
 
 const matr = {
@@ -3119,6 +3121,12 @@ function fillKuzDe() {
 //
 // RSA
 //
+function RsaGcd(a, b) { 
+    if (a == 0) 
+        return b; 
+    return RsaGcd(b % a, a); 
+} 
+
 function RsaPowMod(number, power, modula) {
     let result = number;
     for (let i = 1; i < power; i++) {
@@ -3158,6 +3166,11 @@ function RsaPrime(n) {
     } 
     return result; 
 } 
+
+function RsaGenKey(phi, e) {
+    let d = RsaPowMod(e, phi - 1, phi);
+    return d;
+}
 
 function RsaCoprimes(num1, num2) {
     let smaller = num1 > num2 ? num1 : num2;
@@ -3208,64 +3221,80 @@ function RsaDecrypt(phrase, n, d) {
     }
 }
 
-function RsaPrepairPhrase(text, n, e, typecr) {
+function RsaPrepairPhrase(text, p, q, e, typecr) {
     if (typecr) {
         let newText = markToChar(text).toLocaleLowerCase();
-        let ntest = RsaPrime(n);
-        if (ntest.length != 2) {
-            return 'n - должно быть произведением двух простых чисел';
+        let ptest = RsaPrime(p);
+        let qtest = RsaPrime(q);
+        if (ptest.length != 0) {
+            return 'p - должно быть простым числом';
         }
-
-        let eiler = (ntest[0] - 1) * (ntest[1] - 1);
+        if (qtest.length != 0) {
+            return 'q - должно быть простым числом';
+        }
+        
+        let eiler = (p - 1) * (q - 1);
+        document.getElementById('rsaDeD').value = RsaGenKey(eiler, e);
+        document.getElementById('rsaEnN').value = p*q;
+        document.getElementById('rsaEnFN').value = eiler;
         if (!RsaCoprimes(eiler, e)) {
             return 'e - дожно быть взаимнопростым с функцией эйлера от n и меньше ее';
         }
 
-        return RsaEncrypt(newText, n, e);
+        return RsaEncrypt(newText, p*q, e);
 
     } else {
-        let ntest = RsaPrime(n);
-        if (ntest.length != 2) {
-            return 'n - должно быть произведением двух простых чисел';
+        let ptest = RsaPrime(p);
+        let qtest = RsaPrime(q);
+        if (ptest.length != 0) {
+            return 'p - должно быть простым числом';
+        }
+        if (qtest.length != 0) {
+            return 'q - должно быть простым числом';
         }
 
-        let eiler = (ntest[0] - 1) * (ntest[1] - 1);
+        let eiler = (p - 1) * (q - 1);
+        document.getElementById('rsaDeN').value = p*q;
+        document.getElementById('rsaDeFN').value = eiler;
         if (RsaCoprimes(eiler, e) == false) {
             return 'd - дожно быть взаимнопростым с функцией эйлера от n и меньше ее';
         }
 
-        let newText = charToMark(RsaDecrypt(text, n, e));
+        let newText = charToMark(RsaDecrypt(text, p*q, e));
         return newText;
     }
 }
 
 function fillRsaEn() {
     let text = document.querySelector('#rsaEnArea').value;
-    let enN = Number(document.querySelector('#rsaEnN').value); 
+    // let enN = Number(document.querySelector('#rsaEnN').value);
+    let enP =  Number(document.querySelector('#rsaEnP').value);
+    let enQ = Number(document.querySelector('#rsaEnQ').value);
     let enE = Number(document.querySelector('#rsaEnE').value);
     let newText = "";
     if (spaceTypes.rsaSpace) {
         newText = spaceWithStart(text);
-        newText = RsaPrepairPhrase(newText, enN, enE, true);
+        newText = RsaPrepairPhrase(newText, enP, enQ, enE, true);
     }else {
         newText = spaceWithout(text);
-        newText = RsaPrepairPhrase(newText, enN, enE, true);
+        newText = RsaPrepairPhrase(newText, enP, enQ, enE, true);
     }
     document.getElementById('rsaAfterEn').value = newText;
 };
 
 function fillRsaDe() {
     let text = document.querySelector('#rsaDeArea').value;
-    let deN = Number(document.querySelector('#rsaDeN').value); 
+    let deP =  Number(document.querySelector('#rsaDeP').value);
+    let deQ = Number(document.querySelector('#rsaDeQ').value); 
     let deD = Number(document.querySelector('#rsaDeD').value);
     let newText = "";
     if (spaceTypes.rsaSpace) {
-        newText = RsaPrepairPhrase(text, deN, deD, false);
+        newText = RsaPrepairPhrase(text, deP, deQ, deD, false);
         // console.log(newText)
         newText = spaceWithEnd(newText);
     }else {
         newText = spaceWithout(text);
-        newText = RsaPrepairPhrase(newText, deN, deD, false);
+        newText = RsaPrepairPhrase(newText, deP, deQ, deD, false);
     }
     document.getElementById('rsaAfterDe').value = newText;
 };
@@ -3327,6 +3356,11 @@ function ElgCoprimes(num1, num2) {
     };
     return true;
 };
+
+function ElgGenKey(g, x, p) {
+    let y = ElgPowMod(g, x, p);
+    return y;
+}
 
 function ElgGetNumbers(phrase, len) {
     let result = []
@@ -3401,6 +3435,19 @@ function ElgEncrypt(phrase, p, g, y, r) {
     let len = p.toString().length;
     let gen = new ElgGen(phi, phrase.length, r);
     let result = '';
+    // let k = 0;
+    // let keys = [3,5,7,3,5,7,7,5,  
+    //             3,5,3,5,3,7,7,5,
+    //             5,7,5,3,7,5,3,5,
+    //             7,3,5,5,7,3,3,5,
+    //             3,5,5,7];
+    // for (const mi of phrase) {
+    //     const ki = keys[k];
+    //     const ai = ElgPowMod(g, ki, p);
+    //     const bi = (ElgPowMod(y, ki, p) * (alphabet.indexOf(mi) + 1)) % p;
+    //     result += ElgToString(ai, len) + ElgToString(bi, len);
+    //     k++;
+    // }
     for (const mi of phrase) {
         const ki = gen.next();
         const ai = ElgPowMod(g, ki, p);
@@ -3438,9 +3485,11 @@ function ElgPrepairPhrase(text, p, g, y, x, typecr) {
         if (g <= 1 || g >= p) {
             return 'g - должно быть 1 < g < p'
         }
-        console.log(newText.length)
+        y = ElgGenKey(g, x, p);
+        document.getElementById('elgEnY').value = y;
+        // console.log(newText.length)
         let keys = ElgCreateKeys(p, newText.length);
-        // return ElgEncrypt(newText, p, g, [3,5,7]) // Для теста на своей фразе
+        // return ElgEncrypt(newText, p, g, y, [3,5,7]) // Для теста на своей фразе
         return ElgEncrypt(newText, p, g, y, keys)
 
     } else {
@@ -3450,9 +3499,9 @@ function ElgPrepairPhrase(text, p, g, y, x, typecr) {
         if (ptest.length != 0) {
             return 'p - должно быть простым числом'
         }
-        if (x <= 1 || x >= p) {
-            return 'x - должно быть 1 < x < p'
-        }
+        // if (x <= 1 || x >= p) {
+        //     return 'x - должно быть 1 < x < p'
+        // }
 
         let newText = charToMark(ElgDecrypt(text, p, x));
         return newText;
@@ -3464,13 +3513,14 @@ function fillElgEn() {
     let enP = Number(document.querySelector('#elgEnP').value); 
     let enG = Number(document.querySelector('#elgEnG').value);
     let enY = Number(document.querySelector('#elgEnY').value);
+    let enX = Number(document.querySelector('#elgDeX').value);
     let newText = "";
     if (spaceTypes.elgSpace) {
         newText = spaceWithStart(text);
-        newText = ElgPrepairPhrase(newText, enP, enG, enY, 0, true);
+        newText = ElgPrepairPhrase(newText, enP, enG, 0, enX, true);
     }else {
         newText = spaceWithout(text);
-        newText = ElgPrepairPhrase(newText, enP, enG, enY, 0, true);
+        newText = ElgPrepairPhrase(newText, enP, enG, 0, enX, true);
     }
     document.getElementById('elgAfterEn').value = newText;
 };
@@ -3489,6 +3539,1017 @@ function fillElgDe() {
     }
     document.getElementById('elgAfterDe').value = newText;
 };
+
+
+//
+// ECC
+//
+function EccModd(value, mod) {
+    return ((value % mod) + mod) % mod;
+}
+
+function EccPowMod(number, power, modula) {
+    let result = number;
+    for (let i = 1; i < power; i++) {
+        result *= number;
+        result %= modula;
+    }
+    return result;
+}
+
+function EccGcd(a, b) { 
+    if (a == 0) 
+        return b; 
+    return EccGcd(b % a, a); 
+}
+
+function EccIsPrime(n) { 
+    let result = [1, n]; 
+    for (let i = 2; i < Math.pow(n, 0.5); i++) { 
+        if (n % i == 0) {
+            return false;
+        } 
+    }
+    return true;
+}
+
+class EccPoint {
+    constructor(a, b, x, y, modula) {
+        this.a = a;
+        this.b = b;
+        this.point = (x != undefined && y != undefined) ? [x, y] : null;
+        this.modula = modula;
+    }
+
+    static EccGcd(a, b) { 
+        if (a == 0) 
+            return b; 
+        return EccPoint.EccGcd(b % a, a); 
+    }
+
+    static phi(number) {
+        let count = 0;
+        for (let x = 1; x <= number; x++) {
+            if (EccPoint.EccGcd(number, x) == 1) count++;
+        }
+        return count;
+    }
+
+    static EccPowMod(number, power, modula) {
+        let result = number;
+        for (let i = 1; i < power; i++) {
+            result *= number;
+            result %= modula;
+        }
+        return result;
+    }
+
+    static div_by_mod(a, b, modula) {
+        let phi = EccPoint.phi(modula);
+        b = EccPoint.EccPowMod(b, phi - 1, modula);
+        return (a * b) % modula;
+    }
+
+    get_x_y() {
+        if (this.point != null) {
+            return this.point;
+        } else {
+            return [0, 0];
+        }
+    }
+
+    get_x_y_isize() {
+        if (this.point != null) {
+            return [this.point[0], this.point[1]];
+        } else {
+            return [0, 0];
+        }
+    }
+
+    lambda_xx(rhs) {
+        let [rhs_x, rhs_y] = rhs.get_x_y_isize();
+        let [self_x, self_y] = this.get_x_y_isize();
+        let left = EccModd(rhs_y - self_y, this.modula);
+        let right = EccModd(rhs_x - self_x, this.modula);
+        if (right == 0) {
+            return null;
+        }
+        return EccPoint.div_by_mod(left, right, this.modula);
+    }
+
+    lambda_x2() {
+        let [self_x, self_y] = this.get_x_y_isize();
+        let left = EccModd(3 * self_x * self_x + this.a, this.modula);
+        let right = EccModd(2 * self_y, this.modula);
+        if (right == 0) {
+            return null;
+        }
+        return EccPoint.div_by_mod(left, right, this.modula);
+    }
+
+    mul(n) {
+        let point = this;
+        let temp = new EccPoint(this.a, this.b, this.point[0], this.point[1], this.modula); // было просто = point
+        for (let i = 1; i < n; i++) {
+            temp = temp.add(point);    
+        }
+        return temp;
+    }
+
+    add(rhs) {
+        let temp = new EccPoint(this.a, this.b, 0, 0, this.modula);
+        if (this.point != null && rhs.point != null) {
+            let [rhs_x, rhs_y] = rhs.get_x_y_isize();
+            let [self_x, self_y] = this.get_x_y_isize();
+            let lambda, x;
+            if (self_x != rhs_x || self_y != rhs_y) {
+                lambda = this.lambda_xx(rhs);
+                if (lambda != null) {
+                    lambda = lambda;
+                } else {
+                    temp.point = null;
+                    return temp;
+                }
+                x = EccModd(lambda * lambda - self_x - rhs_x, this.modula);
+            } else {
+                lambda = this.lambda_x2();
+                if (lambda !== null) {
+                    lambda = lambda;
+                } else {
+                    temp.point = null;
+                    return temp;
+                }
+                x = EccModd(lambda * lambda - 2 * self_x, this.modula);
+            }
+            let y = EccModd((lambda * EccModd(self_x - x, this.modula)) - self_y, this.modula);
+            temp.point = [x, y];
+            return temp;
+        } else if (this.point == null && rhs.point == null) {
+            temp.point = null;
+            return temp;
+        } else if (this.point == null) {
+            return rhs;
+        } else {
+            return this;
+        }
+    }
+}
+
+class CipherValue {
+    constructor(s, a, b, modula) {
+        let buff = s.replaceAll("(", "").replaceAll(")", "").split(',').map(x => parseInt(x));
+        if (buff.length >= 3) {
+          this.point = new EccPoint(a, b, buff[0], buff[1], modula);
+          this.value = buff[2];
+        } else {
+          throw new Error("Unexpected behavior");
+        }
+    }
+
+    toString() {
+        return `(${this.point},${this.value})`;
+    }
+}
+
+function EccGetPoints(a, b, modula) {
+    let ys = Array.from({ length: modula }, (_, i) => i);
+    let y2s = [];
+    ys.forEach(y => y2s[((y * y) % modula)] = y);
+    let xs = [...ys];
+    let y4x = xs.map(x => EccModd((x ** 3) + a * x + b, modula));
+    y4x = y4x.map(y => typeof y2s[y] != 'undefined' ? y : null);
+    let xys = [];
+    for (let [y4xi, xsi] of y4x.map((y, i) => [y, xs[i]]).filter(a => a[0] != null)) {
+        xys.push(new EccPoint(a, b, xsi, y2s[y4xi], modula));
+        if (y2s[y4xi] != 0) {
+            xys.push(new EccPoint(a, b, xsi, EccModd(-(y2s[y4xi]), modula), modula));
+        }
+    }
+    return xys;
+}
+
+function EccGetQ(n) {
+    let q = 1;
+    for (let i = 3; i < n; i++) {
+        if (EccGcd(n, i) == i && EccIsPrime(i)) {
+            q = i;
+        }
+    }
+    return (q == 1) ? n : q;
+}
+
+// function get_keys() {
+//     const rng = random.createRandom();
+//     let modula = rng.int(34, 60); // случайное число от 34 до 60
+//     while (!EccIsPrime(modula)) {
+//         modula = rng.int(34, 60);
+//     }
+//     let a = rng.int(1, 10);
+//     let b = rng.int(1, 10);
+//     while (!validateEll(a, b, modula)) {
+//         a = rng.int(1, 10);
+//         b = rng.int(1, 10);
+//     }
+//     const points_group = get_points(a, b, modula);
+//     const n = points_group.length + 1;
+//     const q = EccGetQ(n);
+//     const h = Math.floor(n / q);
+//     let index = rng.int(0, points_group.length);
+//     while (points_group[index].mul(h).point === null) {
+//         index = rng.int(0, points_group.length);
+//     }
+//     let g = points_group[index].mul(h);
+//     let secret = rng.int(1, q);
+//     let open = g.mul(secret);
+//     return [g, q, secret, open];
+// }
+
+function validateEll(a, b, modula) {
+    return EccModd(4 * (a ** 3) + 27 * (b ** 2), modula) != 0;
+}
+
+function EccEnc(mi, db, g, k, q) {
+    let r = g.mul(k);
+    let p = db.mul(k);
+    let [x, _] = p.get_x_y_isize();
+    while (x == 0) {
+        k = Math.floor(Math.random() * q + 1);
+        r = g.mul(k);
+        p = db.mul(k);
+        [x, _] = p.get_x_y_isize();
+    }
+    let m = EccModd(mi * x, p.modula);
+    let result = `((${r.point[0]},${r.point[1]}),${m})`;
+    return result;
+}
+
+function EccEncrypt(phrase, db, g, q) {
+    let alphabet = 'абвгдежзийклмнопрстуфхцчшщъыьэюя';
+    const result = Array.from(phrase, x => {
+        let mi = alphabet.indexOf(x) + 1;
+        let k = Math.floor(Math.random() * q + 1);
+        return EccEnc(mi, db, g, k, q);
+    }).join("");
+    // let mi = 10;
+    // let k = 4;
+    // result = EccEnc(mi, db, g, k, q);
+    return result;
+}
+
+function EccDec(cb, value, modula) {
+    let q = value.point.mul(cb);
+    let [x, _] = q.get_x_y();
+    return EccModd(value.value * EccPowMod(x, modula - 2, modula), modula);
+}
+
+function EccDecrypt(phrase, cb, a, b, modula) {
+    let alphabet = 'абвгдежзийклмнопрстуфхцчшщъыьэюя';
+    let re = /\(\(\d+,\d+\),\d+\)/g; // ищет походие этой подстроке ((1,1),2)
+    let result = Array.from(phrase.match(re), x => {
+        let val = new CipherValue(x, a, b, modula);
+        let m = EccDec(cb, val, modula);
+        return alphabet[m - 1];
+        // return m;
+    }).join("");
+    return result;
+}
+
+function EccPrepairPhrase(phrase, a, b, p, Gx, Gy, q, Cb, crtype) {
+    if (crtype) {
+        let newText = markToChar(phrase).toLocaleLowerCase();
+
+        let ptest = EccIsPrime(p);
+        if (!ptest) {
+            return 'P - должно быть простым числом'
+        }
+        if (!validateEll(a, b, p)) {
+            return 'Кривая не соответствует условию'
+        }
+
+        let n = EccGetPoints(a, b, p).length + 1;
+        // q = 7;
+        q = EccGetQ(n);
+        document.querySelector('#eccEnQ').value = q;
+
+        let g = new EccPoint(a, b, Gx, Gy, p);
+        let db = g.mul(Cb);
+        let Yx = db.point[0];
+        let Yy = db.point[1];
+        document.querySelector('#eccEnYx').value = Yx;
+        document.querySelector('#eccEnYy').value = Yy;
+
+        return EccEncrypt(newText, db, g, q);
+
+    } else {
+        let ptest = EccIsPrime(p);
+        if (!ptest) {
+            return 'p - должно быть простым числом'
+        }
+        if (!validateEll(a, b, p)) {
+            return 'Кривая не соответствует условию'
+        }
+
+        let newText = charToMark(EccDecrypt(phrase, Cb, a, b, p));
+        return newText;
+    }
+}
+
+function fillEccEn() {
+    let text = document.querySelector('#eccEnArea').value;
+    let enA = Number(document.querySelector("#eccEnA").value);
+    let enB = Number(document.querySelector("#eccEnB").value);
+    let enP = Number(document.querySelector("#eccEnP").value);
+    let enGx = Number(document.querySelector("#eccEnGx").value);
+    let enGy = Number(document.querySelector("#eccEnGy").value);
+    let enCb = Number(document.querySelector("#eccEnCb").value);
+    let newText = "";
+
+    newText = spaceWithStart(text);
+    newText = EccPrepairPhrase(newText, enA, enB, enP, enGx, enGy, 0, enCb, true);
+    
+    document.getElementById('eccAfterEn').value = newText;
+}
+
+function fillEccDe() {
+    let text = document.querySelector('#eccDeArea').value;
+    let enA = Number(document.querySelector("#eccEnA").value);
+    let enB = Number(document.querySelector("#eccEnB").value);
+    let enP = Number(document.querySelector("#eccEnP").value);
+    let enCb = Number(document.querySelector("#eccEnCb").value);
+    let newText = ""
+
+    newText = EccPrepairPhrase(text, enA, enB, enP, 0, 0, 0, enCb, false);
+    newText = spaceWithEnd(newText);
+
+    document.getElementById('eccAfterDe').value = newText;
+}
+
+//
+// ЦП RSA
+//
+function SRsaSquareHash(phrase, modula) {
+    let hi = 0;
+    let alphabet = 'абвгдежзиклмнопрстуфхцчшщъыьэюя';
+    Array.from(phrase).forEach(letter => {
+        let index = alphabet.indexOf(letter) + 1;
+        hi = Math.pow((hi + index), 2) % modula;
+    });
+    return hi;
+}
+
+function SRsaSign(phrase, p, q, d) {
+    let m = SRsaSquareHash(phrase, p);
+    let result = RsaPowMod(m, d, p*q);
+    return result;
+}
+
+function SRsaSignCheck(phrase, p, q, e, s) {
+    let m = SRsaSquareHash(phrase, p);
+    let ms = RsaPowMod(s, e, p*q);
+    return m == ms;
+}
+
+function SRsaPreparePhrase(phrase, p, q, e, s, crtype) {
+    if (crtype) {
+        phrase = markToChar(phrase).toLocaleLowerCase();
+        let ptest = RsaPrime(p);
+        let qtest = RsaPrime(q);
+        if (ptest.length != 0) {
+            return 'p - должно быть простым числом';
+        }
+        if (qtest.length != 0) {
+            return 'q - должно быть простым числом';
+        }
+
+        let eiler = (p - 1) * (q - 1);
+        let d = RsaGenKey(eiler, e);
+
+        document.getElementById('srsaEnN').value = p*q;
+        document.getElementById('srsaEnFN').value = eiler;
+        if (!RsaCoprimes(eiler, e)) {
+            return 'e - дожно быть взаимнопростым с функцией эйлера от n и меньше ее';
+        }
+
+        let signS = SRsaSign(phrase, p, q, d);
+        document.getElementById('srsaDeS').value = signS;
+        return signS;
+
+    } else {
+        phrase = markToChar(phrase).toLocaleLowerCase();
+        let ptest = RsaPrime(p);
+        let qtest = RsaPrime(q);
+        if (ptest.length != 0) {
+            return 'p - должно быть простым числом';
+        }
+        if (qtest.length != 0) {
+            return 'q - должно быть простым числом';
+        }
+
+        let eiler = (p - 1) * (q - 1);
+
+        document.getElementById('srsaDeN').value = p*q;
+        document.getElementById('srsaDeFN').value = eiler;
+        if (!RsaCoprimes(eiler, e)) {
+            return 'e - дожно быть взаимнопростым с функцией эйлера от n и меньше ее';
+        }
+
+        let check = SRsaSignCheck(phrase, p, q, e, s);
+
+        if (check) {
+            return 'Цифровая подпись верна';
+        } else {
+            return 'Цифровая подпись НЕ верна'
+        }
+    }
+}
+
+function fillSRsaEn() {
+    let text = document.querySelector('#srsaEnArea').value;
+    let enP = Number(document.querySelector('#srsaEnP').value);
+    let enQ = Number(document.querySelector('#srsaEnQ').value);
+    let enE = Number(document.querySelector('#srsaEnE').value);
+    let newText = "";
+
+    newText = spaceWithout(text);
+    newText = SRsaPreparePhrase(newText, enP, enQ, enE, 0, true);
+
+    document.getElementById('srsaAfterEn').value = newText;
+};
+
+function fillSRsaDe() {
+    let text = document.querySelector('#srsaDeArea').value;
+    let deP = Number(document.querySelector('#srsaDeP').value);
+    let deQ = Number(document.querySelector('#srsaDeQ').value); 
+    let deE = Number(document.querySelector('#srsaDeE').value);
+    let deS = Number(document.querySelector('#srsaDeS').value);
+    let newText = "";
+
+    newText = spaceWithout(text);
+    newText = SRsaPreparePhrase(newText, deP, deQ, deE, deS, false);
+
+    document.getElementById('srsaAfterDe').value = newText;
+};
+
+
+//
+// ЦП El Gamal
+//
+function RsaPowMod(number, power, modula) {
+    let result = number;
+    for (let i = 1; i < power; i++) {
+        result *= number;
+        result %= modula;
+    }
+    return result;
+}
+
+function ElgGcd(a, b) { 
+    if (a == 0) 
+        return b; 
+    return ElgGcd(b % a, a); 
+}
+
+function SRsaModd(x, p) {
+    return ((x % p) + p) % p;
+}
+
+function SRsaSquareHash(phrase, modula) {
+    let hi = 0;
+    let alphabet = 'абвгдежзиклмнопрстуфхцчшщъыьэюя';
+    Array.from(phrase).forEach(letter => {
+        let index = alphabet.indexOf(letter) + 1;
+        hi = Math.pow((hi + index), 2) % modula;
+    });
+    return hi;
+}
+
+function SRsaPhi(number) {
+    let count = 0;
+    for (let x = 1; x <= number; x++) {
+        if (ElgGcd(number, x) == 1) {
+            count++;
+        }
+    }
+    return count;
+}
+
+function SRsaGetB(m, x, a, k, p) {
+    let xa = SRsaModd((x * a), p);
+    let m_xa = SRsaModd(m - xa, p);
+    let k_rv = RsaPowMod(k, SRsaPhi(p) - 1, p);
+    return (m_xa * k_rv) % p;
+}
+
+function ElgamalSign(phrase, p, g, x, modula) {
+    let m = SRsaSquareHash(phrase, modula);
+    let k = Math.floor(Math.random() * (p - 2) + 2);
+    while (ElgGcd(p - 1, k) !== 1) {
+        k = Math.floor(Math.random() * (p - 2) + 2);
+    }
+    let a = RsaPowMod(g, k, p);
+    let b = SRsaGetB(m, x, a, k, p - 1);
+    return [a, b];
+}
+
+// Для своей фразы
+function ElgamalSignTest(phrase, p, g, x, modula) {
+    let m = SRsaSquareHash(phrase, modula);
+    let k = 5;
+    let a = RsaPowMod(g, k, p);
+    let b = SRsaGetB(m, x, a, k, p - 1);
+    return [a, b];
+}
+
+function ElgamalSignCheck(phrase, p, g, y, a, b, modula) {
+    let m = SRsaSquareHash(phrase, modula);
+    let a1 = (RsaPowMod(y, a, p) * RsaPowMod(a, b, p)) % p;
+    let a2 = RsaPowMod(g, m, p);
+    return a1 == a2;
+}
+
+function SElgPreparePhrase(phrase, p, g, x, y, a, b, crtype) {
+    if (crtype) {
+        phrase = markToChar(phrase).toLocaleLowerCase();
+        let ptest = ElgPrime(p);
+        if (p <= 32) {
+            return 'p - должно быть больше длины алфавита'
+        }
+        if (ptest.length != 0) {
+            return 'p - должно быть простым числом'
+        }
+        if (g <= 1 || g >= p) {
+            return 'g - должно быть 1 < g < p'
+        }
+        if (x <= 1 || x > (p - 1)) {
+            return 'x - должно быть 1 < x <= p - 1'
+        }
+
+        y = ElgGenKey(g, x, p);
+        document.getElementById('selgDeY').value = y;
+        [a, b] = ElgamalSign(phrase, p, g, x, p);
+        // [a, b] = ElgamalSignTest(phrase, p, g, x, 11); // Для теста на своей фразе
+        document.getElementById('selgDeA').value = a;
+        document.getElementById('selgDeB').value = b;
+        
+        return `[${a}, ${b}]`
+
+    } else {
+        phrase = markToChar(phrase).toLocaleLowerCase();
+        let ptest = ElgPrime(p);
+        if (p <= 32) {
+            return 'p - должно быть больше длины алфавита'
+        }
+        if (ptest.length != 0) {
+            return 'p - должно быть простым числом'
+        }
+        if (g <= 1 || g >= p) {
+            return 'g - должно быть 1 < g < p'
+        }
+        
+
+        let check = ElgamalSignCheck(phrase, p, g, y, a, b, p);
+        // let check = ElgamalSignCheck(phrase, p, g, y, a, b, 11);
+
+        if (check) {
+            return 'Цифровая подпись верна';
+        } else {
+            return 'Цифровая подпись НЕ верна'
+        }
+    }
+}
+
+function fillSElgEn() {
+    let text = document.querySelector('#selgEnArea').value;
+    let enP = Number(document.querySelector('#selgEnP').value);
+    let enG = Number(document.querySelector('#selgEnG').value);
+    let enX = Number(document.querySelector('#selgEnX').value);
+    let newText = "";
+
+    newText = spaceWithout(text);
+    newText = SElgPreparePhrase(newText, enP, enG, enX, 0, 0, 0, true);
+
+    document.getElementById('selgAfterEn').value = newText;
+};
+
+function fillSElgDe() {
+    let text = document.querySelector('#selgDeArea').value;
+    let deP = Number(document.querySelector('#selgDeP').value);
+    let deG = Number(document.querySelector('#selgDeG').value); 
+    let deY = Number(document.querySelector('#selgDeY').value);
+    let deA = Number(document.querySelector('#selgDeA').value);
+    let deB = Number(document.querySelector('#selgDeB').value);
+    let newText = "";
+
+    newText = spaceWithout(text);
+    newText = SElgPreparePhrase(newText, deP, deG, 0, deY, deA, deB, false);
+
+    document.getElementById('selgAfterDe').value = newText;
+};
+
+
+//
+// ГОСТ Р 34.10-94
+//
+function G94SquareHash(phrase, modula) {
+    let hi = 0;
+    let alphabet = 'абвгдежзиклмнопрстуфхцчшщъыьэюя';
+    Array.from(phrase).forEach(letter => {
+        let index = alphabet.indexOf(letter) + 1;
+        hi = Math.pow((hi + index), 2) % modula;
+    });
+    return hi;
+}
+
+function G94PowMod(number, power, modula) {
+    let result = number;
+    for (let i = 1; i < power; i++) {
+        result *= number;
+        result %= modula;
+    }
+    return result;
+}
+
+function G94Modd(x, p) {
+    return ((x % p) + p) % p;
+}
+
+function G94Sign(phrase, p, q, a, x, modula) {
+    let h = G94SquareHash(phrase, modula);
+    let k = Math.floor(Math.random() * (q - 2) + 2);
+    // let k = 11;
+    let r = G94Modd(G94PowMod(a, k, p), q);
+    while (r == 0) {
+        k = Math.floor(Math.random() * (q - 2) + 2);
+        r = G94Modd(G94PowMod(a, k, p), q);
+    }
+    let s = G94Modd(x * r + k * h, q);
+    return [r, s];
+}
+
+function G94SignCheck(phrase, p, q, a, y, r, s, modula) {
+    let h = G94SquareHash(phrase, modula);
+    let v = G94PowMod(h, q - 2, q);
+    let z1 = G94Modd(s * v, q);
+    let z2 = G94Modd((q - r) * v, q);
+    let u = G94Modd(G94Modd(G94PowMod(a, z1, p) * G94PowMod(y, z2, p), p), q);
+    return u == r;
+}
+
+function G94PreparePhrase(phrase, p, q, a, x, y, r, s, crtype) {
+    if (crtype) {
+        phrase = markToChar(phrase).toLocaleLowerCase();
+        let ptest = ElgPrime(p);
+        let atest = G94PowMod(a, q, p);
+        if (p <= 32) {
+            return 'p - должно быть больше длины алфавита';
+        }
+        if (ptest.length != 0) {
+            return 'p - должно быть простым числом';
+        }
+        if (a <= 1 || a >= p-1) {
+            return 'a - должно быть 1 < a < p - 1';
+        }
+        if (atest != 1) {
+            return 'a - должно быть (a**q)modp == 1';
+        }
+        if (q <= 1) {
+            return 'q - Должно быть q > 1'
+        }
+        if (x <= 1) {
+            return 'x - Должно быть x > 1'
+        }
+        // для теста
+        // [r, s] = G94Sign(phrase, p, q, a, x, 11);
+        [r, s] = G94Sign(phrase, p, q, a, x, p);
+
+        y = G94PowMod(a, x, p);
+        document.getElementById('g94EnY').value = y;
+        document.getElementById('g94DeY').value = y;
+
+        document.getElementById('g94DeR').value = r;
+        document.getElementById('g94DeS').value = s;
+     
+        return `[${r}, ${s}]`
+
+    } else {
+        phrase = markToChar(phrase).toLocaleLowerCase();
+        let ptest = ElgPrime(p);
+        let atest = G94PowMod(a, q, p);
+        if (p <= 32) {
+            return 'p - должно быть больше длины алфавита';
+        }
+        if (ptest.length != 0) {
+            return 'p - должно быть простым числом';
+        }
+        if (a <= 1 || a >= p-1) {
+            return 'a - должно быть 1 < a < p - 1';
+        }
+        if (atest != 1) {
+            return 'a - должно быть (a**q)modp == 1';
+        }
+        if (q <= 1) {
+            return 'q - Должно быть q > 1'
+        }
+        if (y <= 1) {
+            return 'y - Должно быть y > 1'
+        }
+        if (r <= 1) {
+            return 'r - Должно быть r > 1'
+        }
+        if (s <= 1) {
+            return 's - Должно быть s > 1'
+        }
+        
+
+        // let check = G94SignCheck(phrase, p, q, a, y, r, s, 11);
+        let check = G94SignCheck(phrase, p, q, a, y, r, s, p);
+
+        if (check) {
+            return 'Цифровая подпись верна';
+        } else {
+            return 'Цифровая подпись НЕ верна'
+        }
+    }
+}
+
+function fillG94En() {
+    let text = document.querySelector('#g94EnArea').value;
+    let enP = Number(document.querySelector('#g94EnP').value);
+    let enQ = Number(document.querySelector('#g94EnQ').value);
+    let enA = Number(document.querySelector('#g94EnA').value);
+    let enX = Number(document.querySelector('#g94EnX').value);
+    let newText = "";
+
+    newText = spaceWithout(text);
+    newText = G94PreparePhrase(newText, enP, enQ, enA, enX, 0, 0, 0, true);
+
+    document.getElementById('g94AfterEn').value = newText;
+};
+
+function fillG94De() {
+    let text = document.querySelector('#g94DeArea').value;
+    let deP = Number(document.querySelector('#g94DeP').value);
+    let deQ = Number(document.querySelector('#g94DeQ').value); 
+    let deA = Number(document.querySelector('#g94DeA').value);
+    let deY = Number(document.querySelector('#g94DeY').value);
+    let deR = Number(document.querySelector('#g94DeR').value);
+    let deS = Number(document.querySelector('#g94DeS').value);
+    let newText = "";
+
+    newText = spaceWithout(text);
+    newText = G94PreparePhrase(newText, deP, deQ, deA, 0, deY, deR, deS, false);
+
+    document.getElementById('g94AfterDe').value = newText;
+};
+
+
+//
+// ГОСТ Р 34.10-2012
+//
+function G2012Modd(num, p) {
+    if (num > 0) {
+        return (num % p);
+    } else {
+        while (num < 0) {
+            num += p;
+        }
+        return num;
+    }
+}
+
+function G2012Sign(mes, x, g, q, m) {
+    let h = SRsaSquareHash(mes, m);
+    if (h == 0) {
+        h = 1;
+    }
+    let k = 0;
+    let p = new EccPoint(1,1,0,0,m);
+    while (p.point == null || p.point[0] == 0) {
+        k = Math.floor(Math.random() * (q - 1) + 1);
+        // k = 5; // для теста
+        p = g.mul(k);
+    }
+    // document.querySelector('#g2012EnYx').value = p.point[0];
+    // document.querySelector('#g2012EnYy').value = p.point[1];
+
+    // let r = EccModd(p.point[0], q);
+    let r = G2012Modd(p.point[0], q);
+    // console.log(k, h, r, x);
+    // let s = EccModd((k*h + r*x), q);
+    let s = G2012Modd((k*h + r*x), q);
+    return `${r},${s}`;
+}
+
+function G2012CheckSign(mes, y, g, q, sign, m) {
+    let h = SRsaSquareHash(mes, m);
+    if (h == 0) {
+        h = 1;
+    }   
+    let [r, s] = sign.split(',').map(x => Number(x));
+    let h1 = EccPowMod(h, q - 2, q); 
+    console.log(h, s, h1);
+    let u1 = EccModd(s*h1, q);
+    // let u1 = G2012Modd(s*h1, q);
+    console.log(r,h1);
+    let u2 = EccModd(-r * h1, q);
+    // let u2 = G2012Modd(-r * h1, q);
+    console.log(u1,u2);
+    let p = (g.mul(u1)).add(y.mul(u2));
+    console.log(p)
+    if (p.point == null || (p.point[0] == 0 && p.point[1] == 0)) {
+        return false;
+    }
+    if (EccModd(p.point[0], q) != r) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+function G2012PreparePhrase(phrase, a, b, p, Gx, Gy, Yx, Yy, x, q, sign, crtype) {
+    if (crtype) {
+        phrase = markToChar(phrase).toLocaleLowerCase();
+
+        let ptest = EccIsPrime(p);
+        if (!ptest) {
+            return 'P - должно быть простым числом'
+        }
+        if (!validateEll(a, b, p)) {
+            return 'Кривая не соответствует условию'
+        }
+        let n = EccGetPoints(a, b, p).length + 1;
+        // q = 7;
+        q = EccGetQ(n);
+        document.querySelector('#g2012EnQ').value = q;
+        if (x < 1 || x >= q) {
+            return 'x - должно быть 0 < x < q';
+        }
+
+        let g = new EccPoint(a, b, Gx, Gy, p);
+        let y = g.mul(x);
+        document.querySelector('#g2012EnYx').value = y.point[0];
+        document.querySelector('#g2012EnYy').value = y.point[1];
+
+        let [r, s] = G2012Sign(phrase, x, g, q, p).split(',').map(x => Number(x));
+        
+        document.getElementById('g2012DeRS').value = `${r},${s}`;
+        return `${r},${s}`
+
+    } else {
+        phrase = markToChar(phrase).toLocaleLowerCase();
+
+        let ptest = EccIsPrime(p);
+        if (!ptest) {
+            return 'P - должно быть простым числом'
+        }
+        if (!validateEll(a, b, p)) {
+            return 'Кривая не соответствует условию'
+        }
+        let [r, s] = sign.split(',').map(x => Number(x));
+        if (r <= 0) {
+            return 'r - должно быть r > 0'
+        }
+        if (s >= q) {
+            return 's - должно быть s < q'
+        }
+        
+        let g = new EccPoint(a, b, Gx, Gy, p);
+        let y = new EccPoint(a, b, Yx, Yy, p);
+        let check = G2012CheckSign(phrase, y, g, q, sign, p);
+
+        if (check) {
+            return 'Цифровая подпись верна';
+        } else {
+            return 'Цифровая подпись НЕ верна'
+        }
+    }
+}
+
+function fillG2012En() {
+    let text = document.querySelector('#g2012EnArea').value;
+    let enA = Number(document.querySelector('#g2012EnA').value);
+    let enB = Number(document.querySelector('#g2012EnB').value);
+    let enP = Number(document.querySelector('#g2012EnP').value);
+    let enGx = Number(document.querySelector('#g2012EnGx').value);
+    let enGy = Number(document.querySelector('#g2012EnGy').value);
+    let enX = Number(document.querySelector('#g2012EnX').value);
+    let newText = "";
+
+    newText = spaceWithout(text);
+    newText = G2012PreparePhrase(newText, enA, enB, enP, enGx, enGy, 0, 0, enX, 0, 0, true);
+
+    document.getElementById('g2012AfterEn').value = String(newText);
+};
+
+function fillG2012De() {
+    let text = document.querySelector('#g2012DeArea').value;
+    let enA = Number(document.querySelector('#g2012EnA').value);
+    let enB = Number(document.querySelector('#g2012EnB').value);
+    let enP = Number(document.querySelector('#g2012EnP').value);
+    let enGx = Number(document.querySelector('#g2012EnGx').value);
+    let enGy = Number(document.querySelector('#g2012EnGy').value);
+    let enYx = Number(document.querySelector('#g2012EnYx').value);
+    let enYy = Number(document.querySelector('#g2012EnYy').value);
+    let enQ = Number(document.querySelector('#g2012EnQ').value);
+    let enSign = document.querySelector('#g2012DeRS').value;
+
+    let newText = "";
+
+    newText = spaceWithout(text);
+    newText = G2012PreparePhrase(newText, enA, enB, enP, enGx, enGy, enYx, enYy, 0, enQ, enSign, false);
+
+    document.getElementById('g2012AfterDe').value = newText;
+};
+
+
+//
+// Diffie–Hellman
+//
+const DH = {
+    a: 0,
+    n: 0,
+    y: 0,
+    k: 0
+}
+
+function DHPowMod(number, power, modula) {
+    let result = number;
+    for (let i = 1; i < power; i++) {
+        result *= number;
+        result %= modula;
+    }
+    return result;
+}
+
+function DHGenY(a, n) {
+    let k = Math.floor(Math.random() * (n - 2) + 2);
+    // let k = 4;
+    let y = DHPowMod(a, k, n);
+    return [y, k];
+}
+
+function DHCheck(y, k, n) {
+    let kb = DHPowMod(y, k, n);
+    return kb;
+}
+
+function fillDhEn() {
+    let enA = Number(document.querySelector('#dhEnA').value);
+    let enN = Number(document.querySelector('#dhEnN').value);
+    let enK = Number(document.querySelector('#dhEnK').value);
+
+    if (enA <= 1 || enN <= 1) {
+        document.querySelector('#dhYArea').value = 'a и n должны быть больше 1';
+    }
+    if (enA >= enN) {
+        document.querySelector('#dhYArea').value = 'a - должно быть 1 < a < n';
+    }
+
+    let enY = DHPowMod(enA, enK, enN);
+    document.querySelector('#dhEnY').value = enY;
+
+    DH.a = enA;
+    DH.n = enN;
+    let temp2 = DHGenY(DH.a, DH.n);
+    DH.y = temp2[0];
+    DH.k = temp2[1]
+
+    document.querySelector('#dhDeA').value = enA;
+    document.querySelector('#dhDeN').value = enN;
+    document.querySelector('#dhDeY').value = DH.y;
+}
+
+function fillDhDe() {
+    let deA = Number(document.querySelector('#dhDeA').value);
+    let deN = Number(document.querySelector('#dhDeN').value);
+    let deK = Number(document.querySelector('#dhEnK').value);
+    let deY = Number(document.querySelector('#dhDeY').value);
+    let enY = Number(document.querySelector('#dhEnY').value);
+
+    if (deA <= 1 || deN <= 1) {
+        document.querySelector('#dhKArea').value = 'a и n должны быть больше 1';
+    }
+    if (deA >= deN) {
+        document.querySelector('#dhKArea').value = 'a - должно быть 1 < a < n';
+    }
+
+    let check1 = Number(DHCheck(deY, deK, deN));
+    let check2 = Number(DHCheck(enY, DH.k, DH.n));
+
+    if (check1 == check2) {
+        document.querySelector('#dhKa').value = check1;
+        document.querySelector('#dhKb').value = check2;
+        document.querySelector('#dhAfterDe').value = 'Равенство выполняется';
+    } else {
+        document.querySelector('#dhAfterDe').value = 'Равенство НЕ выполняется';
+    }   
+
+    if (check1 == 1 && check2 == 1) {
+        document.querySelector('#dhAfterDe').value = 'Общий секретный ключ НЕ должен быть равен 1. Создайте новые открытые ключи.';
+    } 
+}
+
+
 
 
 //
@@ -3667,6 +4728,54 @@ window.onload = () => {
     document.querySelector('#elgDeBtn').
         addEventListener('click', event => {
             fillElgDe();
+        });
+    document.querySelector('#srsaEnBtn').
+        addEventListener('click', event => {
+            fillSRsaEn();
+        });
+    document.querySelector('#srsaDeBtn').
+        addEventListener('click', event => {
+            fillSRsaDe();
+        });
+    document.querySelector('#selgEnBtn').
+        addEventListener('click', event => {
+            fillSElgEn();
+        });
+    document.querySelector('#selgDeBtn').
+        addEventListener('click', event => {
+            fillSElgDe();
+        });
+    document.querySelector('#eccEnBtn').
+        addEventListener('click', event => {
+            fillEccEn();
+        });
+    document.querySelector('#eccDeBtn').
+        addEventListener('click', event => {
+            fillEccDe();
+        });
+    document.querySelector('#g94EnBtn').
+        addEventListener('click', event => {
+            fillG94En();
+        });
+    document.querySelector('#g94DeBtn').
+        addEventListener('click', event => {
+            fillG94De();
+        });
+    document.querySelector('#g2012EnBtn').
+        addEventListener('click', event => {
+            fillG2012En();
+        });
+    document.querySelector('#g2012DeBtn').
+        addEventListener('click', event => {
+            fillG2012De();
+        });
+    document.querySelector('#dhEnYBtn').
+        addEventListener('click', event => {
+            fillDhEn();
+        });
+    document.querySelector('#dhDeKBtn').
+        addEventListener('click', event => {
+            fillDhDe();
         });
 
     //
@@ -3967,6 +5076,90 @@ window.onload = () => {
         document.querySelector('#elg').classList.remove('hidden');
         state.activeSection = document.querySelector('#elg');
     });
+    document.querySelector('#eccPage').addEventListener('click', event => {
+        if (state.activeNvBar) {
+            state.activeNvBar.classList.remove('activeNv');
+        }
+        let tempSec = event.target;
+        tempSec.classList.add("activeNv");
+        state.activeNvBar = event.target;
+
+        if (state.activeSection) {
+            state.activeSection.classList.add('hidden');
+        }
+        document.querySelector('#ecc').classList.remove('hidden');
+        state.activeSection = document.querySelector('#ecc');
+    });
+    document.querySelector('#srsaPage').addEventListener('click', event => {
+        if (state.activeNvBar) {
+            state.activeNvBar.classList.remove('activeNv');
+        }
+        let tempSec = event.target;
+        tempSec.classList.add("activeNv");
+        state.activeNvBar = event.target;
+
+        if (state.activeSection) {
+            state.activeSection.classList.add('hidden');
+        }
+        document.querySelector('#srsa').classList.remove('hidden');
+        state.activeSection = document.querySelector('#srsa');
+    });
+    document.querySelector('#selgPage').addEventListener('click', event => {
+        if (state.activeNvBar) {
+            state.activeNvBar.classList.remove('activeNv');
+        }
+        let tempSec = event.target;
+        tempSec.classList.add("activeNv");
+        state.activeNvBar = event.target;
+
+        if (state.activeSection) {
+            state.activeSection.classList.add('hidden');
+        }
+        document.querySelector('#selg').classList.remove('hidden');
+        state.activeSection = document.querySelector('#selg');
+    });
+    document.querySelector('#g94Page').addEventListener('click', event => {
+        if (state.activeNvBar) {
+            state.activeNvBar.classList.remove('activeNv');
+        }
+        let tempSec = event.target;
+        tempSec.classList.add("activeNv");
+        state.activeNvBar = event.target;
+
+        if (state.activeSection) {
+            state.activeSection.classList.add('hidden');
+        }
+        document.querySelector('#g94').classList.remove('hidden');
+        state.activeSection = document.querySelector('#g94');
+    });
+    document.querySelector('#g2012Page').addEventListener('click', event => {
+        if (state.activeNvBar) {
+            state.activeNvBar.classList.remove('activeNv');
+        }
+        let tempSec = event.target;
+        tempSec.classList.add("activeNv");
+        state.activeNvBar = event.target;
+
+        if (state.activeSection) {
+            state.activeSection.classList.add('hidden');
+        }
+        document.querySelector('#g2012').classList.remove('hidden');
+        state.activeSection = document.querySelector('#g2012');
+    });
+    document.querySelector('#dhPage').addEventListener('click', event => {
+        if (state.activeNvBar) {
+            state.activeNvBar.classList.remove('activeNv');
+        }
+        let tempSec = event.target;
+        tempSec.classList.add("activeNv");
+        state.activeNvBar = event.target;
+
+        if (state.activeSection) {
+            state.activeSection.classList.add('hidden');
+        }
+        document.querySelector('#dh').classList.remove('hidden');
+        state.activeSection = document.querySelector('#dh');
+    });
 
     //
     //
@@ -4029,6 +5222,13 @@ window.onload = () => {
     document.querySelector("#elgSpaceType").addEventListener('click', event => {
         spaceTypes.elgSpace = document.querySelector("#elgSpaceType").checked;
     });
+    // document.querySelector("#eccSpaceType").addEventListener('click', event => {
+    //     spaceTypes.eccSpace = document.querySelector("#eccSpaceType").checked;
+    // });
+
+    // document.querySelector("#srsaSpaceType").addEventListener('click', event => {
+    //     spaceTypes.srsaSpace = document.querySelector("#srsaSpaceType").checked;
+    // });
     
 
     // Дополнительные кнопки
